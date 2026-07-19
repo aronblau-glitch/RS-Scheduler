@@ -4,1076 +4,1422 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ohio Property Investment Analyzer</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #0f172a; --surface: #1e293b; --surface2: #273449; --border: #334155;
   --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
   --green: #22c55e; --yellow: #eab308; --red: #ef4444; --blue: #3b82f6;
-  --purple: #a855f7; --accent: #38bdf8;
+  --accent: #38bdf8;
 }
 body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-h1,h2,h3,h4 { font-weight: 700; }
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── AUTH / SETUP ── */
+.center-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px; width: 100%; max-width: 420px; }
+.auth-logo { font-size: 1.2rem; font-weight: 900; color: var(--accent); margin-bottom: 6px; }
+.auth-sub  { font-size: 0.85rem; color: var(--text3); margin-bottom: 28px; }
+.auth-tabs { display: flex; gap: 4px; margin-bottom: 22px; }
+.auth-tab  { flex: 1; padding: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text2); transition: all .15s; }
+.auth-tab.active { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+.auth-msg { font-size: 0.82rem; margin-top: 14px; padding: 10px 12px; border-radius: 7px; display: none; }
+.auth-msg.ok  { background: rgba(34,197,94,.12); color: var(--green); display: block; }
+.auth-msg.err { background: rgba(239,68,68,.12); color: var(--red); display: block; }
 
 /* ── NAV ── */
 .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.nav-brand { font-size: 1.1rem; font-weight: 800; color: var(--accent); padding: 14px 12px 14px 0; margin-right: 8px; white-space: nowrap; }
-.tab-btn { padding: 14px 16px; font-size: 0.88rem; font-weight: 600; color: var(--text2); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: all .15s; white-space: nowrap; }
-.tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-brand { font-size: 1rem; font-weight: 900; color: var(--accent); padding: 14px 12px 14px 0; margin-right: 8px; white-space: nowrap; }
+.nav-tab { padding: 14px 14px; font-size: 0.85rem; font-weight: 600; color: var(--text2); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.nav-user { font-size: 0.78rem; color: var(--text3); }
+.nav-badge { font-size: 0.68rem; padding: 2px 8px; background: rgba(168,85,247,.2); color: #c084fc; border-radius: 20px; font-weight: 700; }
 
 /* ── LAYOUT ── */
-.tab-content { display: none; padding: 24px 20px; max-width: 1200px; margin: 0 auto; }
-.tab-content.active { display: block; }
+.page { display: none; padding: 24px 20px; max-width: 1200px; margin: 0 auto; }
+.page.active { display: block; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-@media(max-width:900px){ .grid-2,.grid-3{grid-template-columns:1fr;} }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media(max-width:900px){ .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;} }
 
 /* ── CARDS ── */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-.card-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 14px; }
+.card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 14px; }
 
-/* ── FORM ELEMENTS ── */
+/* ── FORM ── */
 .form-group { margin-bottom: 14px; }
 .form-group label { display: block; font-size: 0.78rem; color: var(--text2); margin-bottom: 5px; font-weight: 500; }
-.form-group input, .form-group select {
+.form-group input, .form-group select, .form-group textarea {
   width: 100%; padding: 9px 12px; background: var(--surface2); border: 1px solid var(--border);
   border-radius: 7px; color: var(--text); font-size: 0.9rem; outline: none; transition: border-color .15s;
+  font-family: inherit;
 }
-.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
 .input-prefix { position: relative; }
 .input-prefix span { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 0.85rem; pointer-events: none; }
 .input-prefix input { padding-left: 22px; }
-.input-suffix span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 0.85rem; }
 .input-suffix { position: relative; }
+.input-suffix span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 0.85rem; pointer-events: none; }
 .input-suffix input { padding-right: 24px; }
+
+/* ── BUTTONS ── */
+.btn { padding: 9px 18px; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; transition: all .15s; }
+.btn:hover { opacity: .85; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary  { background: var(--accent); color: #0f172a; }
+.btn-secondary{ background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-danger   { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+.btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+.btn-full { width: 100%; padding: 12px; font-size: 0.95rem; }
 
 /* ── METRICS ── */
 .metric { background: var(--surface2); border-radius: 9px; padding: 14px 16px; }
-.metric-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-.metric-value { font-size: 1.5rem; font-weight: 800; }
-.metric-sub { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
-.green { color: var(--green); } .yellow { color: var(--yellow); } .red { color: var(--red); }
+.metric-label { font-size: 0.68rem; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.metric-value { font-size: 1.4rem; font-weight: 800; }
+.metric-sub { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
+.green{color:var(--green);} .yellow{color:var(--yellow);} .red{color:var(--red);}
+
+/* ── PROPERTY LIST ── */
+.prop-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; transition: border-color .15s; }
+.prop-card:hover { border-color: var(--accent); }
+.prop-addr { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+.prop-meta { font-size: 0.78rem; color: var(--text3); margin-bottom: 12px; }
+.prop-metrics { display: flex; gap: 12px; flex-wrap: wrap; }
+.prop-metric { font-size: 0.78rem; }
+.prop-metric-label { color: var(--text3); }
+.prop-metric-val { font-weight: 700; }
+.status-pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.s-analyzing { background: rgba(56,189,248,.12); color: var(--accent); }
+.s-offer { background: rgba(234,179,8,.12); color: var(--yellow); }
+.s-under_contract { background: rgba(168,85,247,.12); color: #c084fc; }
+.s-owned { background: rgba(34,197,94,.12); color: var(--green); }
+.s-passed { background: rgba(100,116,139,.12); color: var(--text3); }
+.prop-actions { display: flex; gap: 8px; margin-top: 14px; }
 
 /* ── SCORECARD ── */
-.scorecard-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+.scorecard-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
 .scorecard-row:last-child { border-bottom: none; }
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0; }
 .badge-pass { background: rgba(34,197,94,.15); color: var(--green); }
 .badge-warn { background: rgba(234,179,8,.15); color: var(--yellow); }
 .badge-fail { background: rgba(239,68,68,.15); color: var(--red); }
-.scorecard-name { font-weight: 600; font-size: 0.9rem; flex: 1; }
-.scorecard-values { font-size: 0.82rem; color: var(--text2); text-align: right; }
+.scorecard-name { font-weight: 600; font-size: 0.88rem; flex: 1; }
+.scorecard-values { font-size: 0.8rem; color: var(--text2); text-align: right; }
 
-/* ── GAUGE BARS ── */
-.gauge-wrap { margin-bottom: 18px; }
-.gauge-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
-.gauge-label { font-size: 0.8rem; font-weight: 600; }
-.gauge-val { font-size: 0.8rem; font-weight: 700; }
-.gauge-track { height: 10px; background: var(--surface2); border-radius: 99px; overflow: hidden; position: relative; }
+/* ── GAUGE ── */
+.gauge-wrap { margin-bottom: 16px; }
+.gauge-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.gauge-label { font-size: 0.78rem; font-weight: 600; }
+.gauge-val { font-size: 0.78rem; font-weight: 700; }
+.gauge-track { height: 9px; background: var(--surface2); border-radius: 99px; overflow: visible; position: relative; }
 .gauge-fill { height: 100%; border-radius: 99px; transition: width .4s; }
-.gauge-marker { position: absolute; top: -3px; width: 2px; height: 16px; background: rgba(255,255,255,.4); border-radius: 1px; }
+.gauge-marker { position: absolute; top: -3px; width: 2px; height: 15px; background: rgba(255,255,255,.35); border-radius: 1px; }
 .gauge-ticks { display: flex; justify-content: space-between; margin-top: 3px; }
-.gauge-ticks span { font-size: 0.65rem; color: var(--text3); }
+.gauge-ticks span { font-size: 0.62rem; color: var(--text3); }
 
-/* ── HEALTH SCORE ── */
-.health-ring { width: 130px; height: 130px; position: relative; flex-shrink: 0; }
+/* ── HEALTH RING ── */
+.health-ring { width: 120px; height: 120px; position: relative; flex-shrink: 0; }
 .health-ring svg { transform: rotate(-90deg); }
 .health-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
-.health-num .num { font-size: 2rem; font-weight: 900; }
-.health-num .lbl { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; }
+.health-num .num { font-size: 1.8rem; font-weight: 900; }
+.health-num .lbl { font-size: 0.6rem; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; }
 
 /* ── COMPS ── */
-.comp-card { background: var(--surface2); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
-.comp-address { font-weight: 700; margin-bottom: 8px; }
-.comp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.comp-item { font-size: 0.78rem; }
-.comp-item-label { color: var(--text3); }
-.comp-item-val { font-weight: 600; margin-top: 2px; }
-.similarity-strong { color: var(--green); }
-.similarity-good { color: var(--yellow); }
-.similarity-fair { color: var(--text2); }
-.flag { display: flex; gap: 8px; padding: 8px 12px; border-radius: 7px; margin-bottom: 6px; font-size: 0.83rem; }
-.flag-pos { background: rgba(34,197,94,.1); color: var(--green); }
-.flag-cau { background: rgba(234,179,8,.1); color: var(--yellow); }
-.flag-risk { background: rgba(239,68,68,.1); color: var(--red); }
+.comp-card { background: var(--surface2); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.comp-addr { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; }
+.comp-grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+.comp-item-label { font-size: 0.68rem; color: var(--text3); }
+.comp-item-val { font-size: 0.82rem; font-weight: 600; margin-top: 2px; }
+.flag { display: flex; gap: 8px; padding: 8px 12px; border-radius: 7px; margin-bottom: 6px; font-size: 0.82rem; }
+.flag-pos { background: rgba(34,197,94,.08); color: var(--green); }
+.flag-cau { background: rgba(234,179,8,.08); color: var(--yellow); }
+.flag-risk{ background: rgba(239,68,68,.08); color: var(--red); }
 
 /* ── MANAGEMENT ── */
-.mgmt-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.mgmt-table th { text-align: left; padding: 8px 12px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); border-bottom: 1px solid var(--border); }
-.mgmt-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-.mgmt-table tr:last-child td { border-bottom: none; }
-.status-chip { padding: 2px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
-.status-current { background: rgba(34,197,94,.15); color: var(--green); }
-.status-notice { background: rgba(234,179,8,.15); color: var(--yellow); }
-.status-vacant { background: rgba(239,68,68,.15); color: var(--red); }
-.btn { padding: 9px 18px; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none; transition: opacity .15s; }
-.btn:hover { opacity: .85; }
-.btn-primary { background: var(--accent); color: #0f172a; }
-.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-.btn-sm { padding: 6px 12px; font-size: 0.78rem; }
-.spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.arv-verdict { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
-.verdict-under { background: rgba(34,197,94,.15); color: var(--green); }
-.verdict-target { background: rgba(56,189,248,.15); color: var(--accent); }
-.verdict-over { background: rgba(239,68,68,.15); color: var(--red); }
-.section-header { font-size: 1.05rem; font-weight: 800; margin-bottom: 16px; color: var(--text); }
-.sep { height: 1px; background: var(--border); margin: 20px 0; }
-.api-key-row { display: flex; gap: 10px; align-items: center; }
-.api-key-row input { flex: 1; }
-.ytd-bar-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.ytd-bar-label { width: 32px; font-size: 0.75rem; color: var(--text2); text-align: center; }
-.ytd-bar-track { flex: 1; height: 22px; background: var(--surface2); border-radius: 6px; overflow: hidden; }
-.ytd-bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; font-size: 0.72rem; font-weight: 700; }
-.ytd-bar-fill.income { background: rgba(34,197,94,.25); color: var(--green); }
-.ytd-bar-fill.expense { background: rgba(239,68,68,.2); color: var(--red); }
-.tx-type-income { color: var(--green); }
-.tx-type-expense { color: var(--red); }
+.mgmt-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+.mgmt-table th { text-align:left; padding:7px 10px; font-size:0.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--text3); border-bottom:1px solid var(--border); }
+.mgmt-table td { padding:9px 10px; border-bottom:1px solid var(--border); }
+.mgmt-table tr:last-child td { border-bottom:none; }
+.ytd-bar-wrap { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.ytd-bar-label { width:28px; font-size:0.72rem; color:var(--text2); text-align:center; }
+.ytd-bar-track { flex:1; height:20px; background:var(--surface2); border-radius:5px; overflow:hidden; }
+.ytd-bar-fill { height:100%; border-radius:5px; display:flex; align-items:center; padding-left:7px; font-size:0.68rem; font-weight:700; }
+.ytd-bar-fill.income  { background:rgba(34,197,94,.2); color:var(--green); }
+.ytd-bar-fill.expense { background:rgba(239,68,68,.15); color:var(--red); }
+
+/* ── ADMIN ── */
+.user-row { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--border); }
+.user-row:last-child { border-bottom:none; }
+.user-avatar { width:36px; height:36px; border-radius:50%; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; flex-shrink:0; }
+.user-info { flex:1; }
+.user-email { font-size:0.88rem; font-weight:600; }
+.user-meta  { font-size:0.75rem; color:var(--text3); margin-top:2px; }
+.admin-stat { background:var(--surface2); border-radius:9px; padding:16px; text-align:center; }
+.admin-stat-num { font-size:2rem; font-weight:900; color:var(--accent); }
+.admin-stat-lbl { font-size:0.72rem; color:var(--text3); margin-top:4px; text-transform:uppercase; letter-spacing:.05em; }
+
+/* ── MISC ── */
+.sep { height:1px; background:var(--border); margin:18px 0; }
+.spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty-state { text-align:center; padding:48px 20px; color:var(--text3); }
+.empty-state svg { margin-bottom:12px; opacity:.4; }
+.empty-state p { font-size:0.9rem; margin-bottom:16px; }
+.api-key-row { display:flex; gap:10px; align-items:center; }
+.api-key-row input { flex:1; font-family:monospace; }
+.arv-verdict { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.76rem; font-weight:700; }
+.verdict-under  { background:rgba(34,197,94,.12); color:var(--green); }
+.verdict-target { background:rgba(56,189,248,.12); color:var(--accent); }
+.verdict-over   { background:rgba(239,68,68,.12); color:var(--red); }
+.tag { display:inline-block; padding:2px 8px; border-radius:5px; font-size:0.72rem; font-weight:600; background:var(--surface2); color:var(--text2); }
+.page-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
+.page-header h2 { font-size:1.2rem; font-weight:800; flex:1; }
+.back-btn { display:flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--text3); cursor:pointer; background:none; border:none; padding:6px 0; }
+.back-btn:hover { color:var(--text); }
+.toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 18px; font-size:0.85rem; z-index:9999; display:none; box-shadow:0 8px 32px rgba(0,0,0,.4); }
+.toast.show { display:block; animation:slideUp .2s ease; }
+@keyframes slideUp { from{transform:translateY(8px);opacity:0} to{transform:translateY(0);opacity:1} }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-brand">Ohio Property Analyzer</div>
-  <button class="tab-btn active" onclick="showTab('deal')">Deal</button>
-  <button class="tab-btn" onclick="showTab('rental')">Rental Calc</button>
-  <button class="tab-btn" onclick="showTab('gauges')">Gauges</button>
-  <button class="tab-btn" onclick="showTab('comps')">AI Comps</button>
-  <button class="tab-btn" onclick="showTab('mgmt')">Management</button>
-</nav>
+<!-- ═══════════ SETUP SCREEN ═══════════ -->
+<div id="screen-setup" class="screen active">
+  <div class="center-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">Ohio Property Analyzer</div>
+      <div class="auth-sub">Connect your Supabase project to get started.</div>
+      <div class="form-group"><label>Supabase Project URL</label><input type="url" id="sbUrl" placeholder="https://xxxx.supabase.co"></div>
+      <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="sbKey" placeholder="eyJh..." style="font-family:monospace;font-size:0.78rem"></div>
+      <button class="btn btn-primary btn-full" onclick="saveConfig()">Connect</button>
+      <div id="setupMsg" class="auth-msg"></div>
+      <div class="sep"></div>
+      <details style="font-size:0.78rem;color:var(--text3)">
+        <summary style="cursor:pointer;margin-bottom:8px">How to set up Supabase (2 minutes)</summary>
+        <ol style="padding-left:16px;line-height:2">
+          <li>Go to <strong>supabase.com</strong> → New project</li>
+          <li>Settings → API → copy <em>Project URL</em> and <em>anon public</em> key</li>
+          <li>SQL Editor → run the schema below</li>
+        </ol>
+        <div style="margin-top:10px">
+          <button class="btn btn-secondary btn-sm" onclick="copySchema()">Copy SQL Schema</button>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
 
-<!-- ═══════════════════════════════════ DEAL TAB ═══════════════════════════════════ -->
-<div id="tab-deal" class="tab-content active">
-  <div class="grid-2">
-    <div>
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Property Info</div>
-        <div class="form-group">
-          <label>Property Address</label>
-          <input type="text" id="address" placeholder="123 Main St, Columbus, OH 43215" value="">
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>County</label>
-            <select id="county">
-              <option>Franklin (Columbus)</option>
-              <option>Cuyahoga (Cleveland)</option>
-              <option>Hamilton (Cincinnati)</option>
-              <option>Summit (Akron)</option>
-              <option>Montgomery (Dayton)</option>
-              <option>Lucas (Toledo)</option>
-              <option>Stark (Canton)</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Property Type</label>
-            <select id="propType">
-              <option>Single family</option>
-              <option>Multi-family (2–4 units)</option>
-              <option>Condo / townhouse</option>
-              <option>Small apartment (5+ units)</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="form-group"><label>Beds</label><input type="number" id="beds" value="3"></div>
-          <div class="form-group"><label>Baths</label><input type="number" id="baths" step="0.5" value="1.5"></div>
-          <div class="form-group"><label>Sq Ft</label><input type="number" id="sqft" value="1200"></div>
-          <div class="form-group"><label>Year Built</label><input type="number" id="yearBuilt" value="1965"></div>
-        </div>
+<!-- ═══════════ AUTH SCREEN ═══════════ -->
+<div id="screen-auth" class="screen">
+  <div class="center-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">Ohio Property Analyzer</div>
+      <div class="auth-sub" id="authSub">Sign in to your account.</div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabSignIn" onclick="switchAuth('signin')">Sign In</button>
+        <button class="auth-tab" id="tabSignUp" onclick="switchAuth('signup')">Sign Up</button>
       </div>
-
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Key Numbers</div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Purchase Price</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="purchasePrice" value="56000" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>ARV (After Repair Value)</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="arv" value="80000" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Renovation</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="renovation" value="20000" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Monthly Rent</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="monthlyRent" value="1150" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Yield Target</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="yieldTarget" value="10.5" step="0.5" oninput="calc()"></div>
-          </div>
-        </div>
+      <div id="authFormSignIn">
+        <div class="form-group"><label>Email</label><input type="email" id="siEmail" placeholder="you@example.com"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="siPassword" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-full" onclick="signIn()">Sign In</button>
       </div>
-
-      <div class="card">
-        <div class="card-title">Acquisition Costs</div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Inspection</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="inspection" value="325" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Title</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="title" value="500" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Wholesale Fee</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="wholesaleFee" value="6000" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Realtor</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="realtor" value="0" oninput="calc()"></div>
-          </div>
-        </div>
+      <div id="authFormSignUp" style="display:none">
+        <div class="form-group"><label>Full Name</label><input type="text" id="suName" placeholder="Your Name"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="suEmail" placeholder="you@example.com"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="suPassword" placeholder="Min 6 characters"></div>
+        <button class="btn btn-primary btn-full" onclick="signUp()">Create Account</button>
+      </div>
+      <div id="authMsg" class="auth-msg"></div>
+      <div style="margin-top:16px;text-align:center">
+        <button class="btn btn-secondary btn-sm" onclick="resetConfig()" style="font-size:0.72rem;opacity:.6">Change Supabase project</button>
       </div>
     </div>
+  </div>
+</div>
 
-    <div>
-      <!-- SCORECARD -->
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Deal Scorecard</div>
-        <div id="scorecard"></div>
-      </div>
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="screen-app" class="screen">
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-brand">Ohio Property Analyzer</div>
+    <button class="nav-tab active" id="navDash" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="nav-tab" id="navAdmin" onclick="showPage('admin')" style="display:none">Admin</button>
+    <div class="nav-right">
+      <span class="nav-user" id="navUserEmail"></span>
+      <span class="nav-badge" id="navRoleBadge" style="display:none">Admin</span>
+      <button class="btn btn-secondary btn-sm" onclick="signOut()">Sign out</button>
+    </div>
+  </nav>
 
-      <!-- HEALTH SCORE -->
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Investment Health Score</div>
-        <div style="display:flex;gap:20px;align-items:center">
-          <div class="health-ring">
-            <svg width="130" height="130" viewBox="0 0 130 130">
-              <circle cx="65" cy="65" r="54" fill="none" stroke="var(--surface2)" stroke-width="14"/>
-              <circle id="healthArc" cx="65" cy="65" r="54" fill="none" stroke="var(--green)" stroke-width="14"
-                stroke-dasharray="339.3" stroke-dashoffset="339.3" stroke-linecap="round"/>
-            </svg>
-            <div class="health-num">
-              <div class="num" id="healthNum">--</div>
-              <div class="lbl">Health</div>
+  <!-- ── DASHBOARD PAGE ── -->
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <h2>My Properties</h2>
+      <button class="btn btn-primary btn-sm" onclick="openNewProperty()">+ Add Property</button>
+    </div>
+
+    <!-- Portfolio summary -->
+    <div class="grid-4" style="margin-bottom:24px" id="portfolioSummary"></div>
+
+    <!-- Property grid -->
+    <div id="propGrid"></div>
+  </div>
+
+  <!-- ── PROPERTY ANALYZER PAGE ── -->
+  <div id="page-property" class="page">
+    <div class="page-header">
+      <button class="back-btn" onclick="showPage('dashboard')">← Back to properties</button>
+      <div style="flex:1"></div>
+      <select id="propStatus" onchange="savePropStatus()" style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:0.82rem;font-weight:600;cursor:pointer">
+        <option value="analyzing">Analyzing</option>
+        <option value="offer">Offer Stage</option>
+        <option value="under_contract">Under Contract</option>
+        <option value="owned">Owned</option>
+        <option value="passed">Passed</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="saveProperty()">
+        <span id="savePropSpinner" style="display:none" class="spinner"></span>
+        Save
+      </button>
+      <button class="btn btn-danger btn-sm" onclick="deleteProperty()">Delete</button>
+    </div>
+
+    <!-- Analyzer tabs -->
+    <div class="nav" style="margin:0 -20px;padding:0 20px">
+      <button class="nav-tab active" onclick="showAnalTab('deal',this)">Deal</button>
+      <button class="nav-tab" onclick="showAnalTab('rental',this)">Rental Calc</button>
+      <button class="nav-tab" onclick="showAnalTab('gauges',this)">Gauges</button>
+      <button class="nav-tab" onclick="showAnalTab('comps',this)">AI Comps</button>
+      <button class="nav-tab" onclick="showAnalTab('mgmt',this)">Management</button>
+    </div>
+
+    <!-- DEAL TAB -->
+    <div id="anal-deal" class="page active" style="padding:24px 0">
+      <div class="grid-2">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Property Info</div>
+            <div class="form-group"><label>Address</label><input type="text" id="pa_address" placeholder="123 Main St, Columbus, OH 43215" oninput="calc()"></div>
+            <div class="grid-2">
+              <div class="form-group"><label>County</label>
+                <select id="pa_county" onchange="calc()">
+                  <option>Franklin (Columbus)</option><option>Cuyahoga (Cleveland)</option>
+                  <option>Hamilton (Cincinnati)</option><option>Summit (Akron)</option>
+                  <option>Montgomery (Dayton)</option><option>Lucas (Toledo)</option>
+                  <option>Stark (Canton)</option><option>Other</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Property Type</label>
+                <select id="pa_propType" onchange="calc()">
+                  <option>Single family</option><option>Multi-family (2–4 units)</option>
+                  <option>Condo / townhouse</option><option>Small apartment (5+ units)</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Beds</label><input type="number" id="pa_beds" value="3" oninput="calc()"></div>
+              <div class="form-group"><label>Baths</label><input type="number" id="pa_baths" step="0.5" value="1.5" oninput="calc()"></div>
+              <div class="form-group"><label>Sq Ft</label><input type="number" id="pa_sqft" value="1200" oninput="calc()"></div>
+              <div class="form-group"><label>Year Built</label><input type="number" id="pa_yearBuilt" value="1965" oninput="calc()"></div>
             </div>
           </div>
-          <div id="healthCriteria" style="flex:1;font-size:0.82rem;line-height:1.9"></div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Key Numbers</div>
+            <div class="grid-2">
+              <div class="form-group"><label>Purchase Price</label><div class="input-prefix"><span>$</span><input type="number" id="pa_purchasePrice" value="56000" oninput="calc()"></div></div>
+              <div class="form-group"><label>ARV</label><div class="input-prefix"><span>$</span><input type="number" id="pa_arv" value="80000" oninput="calc()"></div></div>
+              <div class="form-group"><label>Renovation</label><div class="input-prefix"><span>$</span><input type="number" id="pa_renovation" value="20000" oninput="calc()"></div></div>
+              <div class="form-group"><label>Monthly Rent</label><div class="input-prefix"><span>$</span><input type="number" id="pa_monthlyRent" value="1150" oninput="calc()"></div></div>
+              <div class="form-group"><label>Yield Target</label><div class="input-suffix"><span>%</span><input type="number" id="pa_yieldTarget" value="10.5" step="0.5" oninput="calc()"></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Acquisition Costs</div>
+            <div class="grid-2">
+              <div class="form-group"><label>Inspection</label><div class="input-prefix"><span>$</span><input type="number" id="pa_inspection" value="325" oninput="calc()"></div></div>
+              <div class="form-group"><label>Title</label><div class="input-prefix"><span>$</span><input type="number" id="pa_title" value="500" oninput="calc()"></div></div>
+              <div class="form-group"><label>Wholesale Fee</label><div class="input-prefix"><span>$</span><input type="number" id="pa_wholesaleFee" value="6000" oninput="calc()"></div></div>
+              <div class="form-group"><label>Realtor</label><div class="input-prefix"><span>$</span><input type="number" id="pa_realtor" value="0" oninput="calc()"></div></div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <!-- KEY METRICS SUMMARY -->
-      <div class="card">
-        <div class="card-title">Quick Metrics</div>
-        <div class="grid-2" style="gap:10px">
-          <div class="metric"><div class="metric-label">Offer / Yield Price</div><div class="metric-value" id="offerPrice">--</div><div class="metric-sub">vs purchase price</div></div>
-          <div class="metric"><div class="metric-label">70% MAO</div><div class="metric-value" id="mao">--</div><div class="metric-sub">max allowable offer</div></div>
-          <div class="metric"><div class="metric-label">Total Investment</div><div class="metric-value" id="totalInv">--</div><div class="metric-sub">all-in cost</div></div>
-          <div class="metric"><div class="metric-label">Discount from ARV</div><div class="metric-value" id="discount">--</div><div class="metric-sub">target ≥ 30%</div></div>
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Deal Scorecard</div>
+            <div id="pa_scorecard"></div>
+          </div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Investment Health Score</div>
+            <div style="display:flex;gap:18px;align-items:center">
+              <div class="health-ring">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface2)" stroke-width="13"/>
+                  <circle id="pa_healthArc" cx="60" cy="60" r="50" fill="none" stroke="var(--green)" stroke-width="13"
+                    stroke-dasharray="314.2" stroke-dashoffset="314.2" stroke-linecap="round"/>
+                </svg>
+                <div class="health-num"><div class="num" id="pa_healthNum">--</div><div class="lbl">Health</div></div>
+              </div>
+              <div id="pa_healthCriteria" style="flex:1;font-size:0.78rem;line-height:1.9"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Quick Metrics</div>
+            <div class="grid-2" style="gap:10px">
+              <div class="metric"><div class="metric-label">Yield Offer Price</div><div class="metric-value" id="pa_offerPrice">--</div></div>
+              <div class="metric"><div class="metric-label">70% MAO</div><div class="metric-value" id="pa_mao">--</div></div>
+              <div class="metric"><div class="metric-label">Total Investment</div><div class="metric-value" id="pa_totalInv">--</div></div>
+              <div class="metric"><div class="metric-label">Discount from ARV</div><div class="metric-value" id="pa_discount">--</div></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ═══════════════════════════════════ RENTAL CALC TAB ═══════════════════════════════════ -->
-<div id="tab-rental" class="tab-content">
-  <div class="grid-2">
-    <div>
+    <!-- RENTAL TAB -->
+    <div id="anal-rental" class="page" style="padding:24px 0">
+      <div class="grid-2">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Financing</div>
+            <div class="grid-2">
+              <div class="form-group"><label>Down Payment</label><div class="input-suffix"><span>%</span><input type="number" id="pa_downPct" value="20" oninput="calc()"></div></div>
+              <div class="form-group"><label>Interest Rate</label><div class="input-suffix"><span>%</span><input type="number" id="pa_interestRate" value="7.5" step="0.125" oninput="calc()"></div></div>
+              <div class="form-group"><label>Loan Term</label><select id="pa_loanTerm" onchange="calc()"><option value="30">30 years</option><option value="15">15 years</option><option value="20">20 years</option></select></div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-title">Operating Expenses (% of Annual Gross Rent)</div>
+            <div class="grid-2">
+              <div class="form-group"><label>Vacancy</label><div class="input-suffix"><span>%</span><input type="number" id="pa_vacancyPct" value="7" oninput="calc()"></div></div>
+              <div class="form-group"><label>Maintenance</label><div class="input-suffix"><span>%</span><input type="number" id="pa_maintenancePct" value="7" oninput="calc()"></div></div>
+              <div class="form-group"><label>Management</label><div class="input-suffix"><span>%</span><input type="number" id="pa_managementPct" value="10" oninput="calc()"></div></div>
+              <div class="form-group"><label>Repairs / CapEx</label><div class="input-suffix"><span>%</span><input type="number" id="pa_repairsPct" value="7" oninput="calc()"></div></div>
+              <div class="form-group"><label>Property Tax</label><div class="input-suffix"><span>%</span><input type="number" id="pa_taxPct" value="10" oninput="calc()"></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Fixed Annual Costs</div>
+            <div class="grid-2">
+              <div class="form-group"><label>Insurance (annual)</label><div class="input-prefix"><span>$</span><input type="number" id="pa_insuranceAnnual" value="850" oninput="calc()"></div></div>
+              <div class="form-group"><label>HOA (monthly)</label><div class="input-prefix"><span>$</span><input type="number" id="pa_hoaMonthly" value="0" oninput="calc()"></div></div>
+              <div class="form-group"><label>Water/Sewer (annual)</label><div class="input-prefix"><span>$</span><input type="number" id="pa_waterAnnual" value="0" oninput="calc()"></div></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px"><div class="card-title">Investment Stack</div><div id="pa_investStack"></div></div>
+          <div class="card" style="margin-bottom:16px"><div class="card-title">Monthly P&L</div><div id="pa_monthlyPL"></div></div>
+          <div class="card"><div class="card-title">Annual Returns</div><div id="pa_annualReturns"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAUGES TAB -->
+    <div id="anal-gauges" class="page" style="padding:24px 0">
+      <div class="grid-2">
+        <div class="card"><div class="card-title">Deal Quality</div><div id="pa_gaugesDeal"></div></div>
+        <div class="card"><div class="card-title">Return Metrics</div><div id="pa_gaugesReturn"></div></div>
+        <div class="card" style="grid-column:1/-1">
+          <div class="card-title">Efficiency Ratios</div>
+          <div class="grid-2" style="gap:0">
+            <div id="pa_gaugesLeft" style="padding-right:20px;border-right:1px solid var(--border)"></div>
+            <div id="pa_gaugesRight" style="padding-left:20px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI COMPS TAB -->
+    <div id="anal-comps" class="page" style="padding:24px 0">
       <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Financing</div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Down Payment</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="downPct" value="20" oninput="calc()"></div>
+        <div class="card-title">Anthropic API Key</div>
+        <div class="api-key-row">
+          <input type="password" id="pa_apiKey" placeholder="sk-ant-...">
+          <button class="btn btn-primary" onclick="runComps()">
+            <span id="pa_compsSpinner" style="display:none" class="spinner"></span>
+            <span id="pa_compsBtnTxt">Run AI Comps</span>
+          </button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:7px">Key is never stored.</div>
+      </div>
+      <div id="pa_compsResults" style="display:none">
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="card"><div class="card-title">ARV Analysis</div><div id="pa_arvAnalysis"></div></div>
+          <div class="card"><div class="card-title">Rent Analysis</div><div id="pa_rentAnalysis"></div></div>
+        </div>
+        <div class="card" style="margin-bottom:16px"><div class="card-title">Comparable Sales</div><div id="pa_compsList"></div></div>
+        <div class="card"><div class="card-title">Investment Flags</div><div id="pa_compFlags"></div></div>
+      </div>
+      <div id="pa_compsError" style="display:none" class="card"><div style="color:var(--red);font-size:0.88rem" id="pa_compsErrMsg"></div></div>
+    </div>
+
+    <!-- MANAGEMENT TAB -->
+    <div id="anal-mgmt" class="page" style="padding:24px 0">
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <div class="card-title">Tenant / Lease</div>
+          <div class="form-group"><label>Tenant Name</label><input type="text" id="pa_tenantName" placeholder="Jane Smith"></div>
+          <div class="grid-2">
+            <div class="form-group"><label>Lease Start</label><input type="date" id="pa_leaseStart"></div>
+            <div class="form-group"><label>Lease End</label><input type="date" id="pa_leaseEnd"></div>
           </div>
-          <div class="form-group">
-            <label>Interest Rate</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="interestRate" value="7.5" step="0.125" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Loan Term</label>
-            <select id="loanTerm" onchange="calc()">
-              <option value="30" selected>30 years</option>
-              <option value="15">15 years</option>
-              <option value="20">20 years</option>
+          <div class="form-group"><label>Monthly Rent</label><div class="input-prefix"><span>$</span><input type="number" id="pa_tenantRent" value="1150"></div></div>
+          <div class="form-group"><label>Status</label>
+            <select id="pa_tenantStatus">
+              <option value="current">Current</option>
+              <option value="notice">Notice Given</option>
+              <option value="vacant">Vacant</option>
             </select>
           </div>
+          <button class="btn btn-primary btn-sm" onclick="saveProperty()">Save</button>
+        </div>
+        <div class="card">
+          <div class="card-title">YTD Performance</div>
+          <div id="pa_ytdChart"></div>
+          <div class="sep"></div>
+          <div style="display:flex;gap:12px">
+            <div class="metric" style="flex:1"><div class="metric-label">Income</div><div class="metric-value green" id="pa_ytdInc">$0</div></div>
+            <div class="metric" style="flex:1"><div class="metric-label">Expenses</div><div class="metric-value red" id="pa_ytdExp">$0</div></div>
+            <div class="metric" style="flex:1"><div class="metric-label">Net</div><div class="metric-value" id="pa_ytdNet">$0</div></div>
+          </div>
         </div>
       </div>
-
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Operating Expenses (% of Annual Gross Rent)</div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Vacancy Rate</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="vacancyPct" value="7" oninput="calc()"></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0">Transactions</div>
+          <button class="btn btn-secondary btn-sm" onclick="showAddTx()">+ Add</button>
+        </div>
+        <div id="pa_addTxForm" style="display:none;background:var(--surface2);border-radius:8px;padding:14px;margin-bottom:14px">
+          <div class="grid-2">
+            <div class="form-group"><label>Date</label><input type="date" id="pa_txDate"></div>
+            <div class="form-group"><label>Type</label><select id="pa_txType"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+            <div class="form-group"><label>Category</label>
+              <select id="pa_txCat"><option>Rent</option><option>Security Deposit</option><option>Late Fee</option><option>Maintenance</option><option>Repairs</option><option>Insurance</option><option>Property Tax</option><option>Management Fee</option><option>Utilities</option><option>Other</option></select>
+            </div>
+            <div class="form-group"><label>Amount</label><div class="input-prefix"><span>$</span><input type="number" id="pa_txAmt" placeholder="0"></div></div>
+            <div class="form-group" style="grid-column:1/-1"><label>Notes</label><input type="text" id="pa_txNotes" placeholder="Optional"></div>
           </div>
-          <div class="form-group">
-            <label>Maintenance</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="maintenancePct" value="7" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Property Management</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="managementPct" value="10" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Repairs / CapEx</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="repairsPct" value="7" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Property Tax</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="taxPct" value="10" oninput="calc()"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="addTx()">Add</button>
+            <button class="btn btn-secondary btn-sm" onclick="hideAddTx()">Cancel</button>
           </div>
         </div>
+        <table class="mgmt-table">
+          <thead><tr><th>Date</th><th>Category</th><th>Notes</th><th>Amount</th><th></th></tr></thead>
+          <tbody id="pa_txBody"></tbody>
+        </table>
+        <div id="pa_txEmpty" style="text-align:center;padding:24px;color:var(--text3);font-size:0.82rem">No transactions yet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADMIN PAGE ── -->
+  <div id="page-admin" class="page">
+    <div class="page-header"><h2>Admin Panel</h2></div>
+
+    <div class="grid-4" style="margin-bottom:24px">
+      <div class="admin-stat"><div class="admin-stat-num" id="adminStatUsers">—</div><div class="admin-stat-lbl">Total Users</div></div>
+      <div class="admin-stat"><div class="admin-stat-num" id="adminStatProps">—</div><div class="admin-stat-lbl">Properties</div></div>
+      <div class="admin-stat"><div class="admin-stat-num" id="adminStatOwned">—</div><div class="admin-stat-lbl">Owned</div></div>
+      <div class="admin-stat"><div class="admin-stat-num" id="adminStatAnalyzing">—</div><div class="admin-stat-lbl">Analyzing</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Invite User</div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="inviteEmail" placeholder="user@example.com"></div>
+        <div class="form-group">
+          <label>Service Role Key <span style="color:var(--text3);font-weight:400;font-size:0.72rem">(required to send invite — never stored)</span></label>
+          <input type="password" id="inviteServiceKey" placeholder="eyJh... (service_role key from Supabase)" style="font-family:monospace;font-size:0.76rem">
+        </div>
+        <button class="btn btn-primary" onclick="inviteUser()">
+          <span id="inviteSpinner" style="display:none" class="spinner"></span>
+          Send Invite Email
+        </button>
+        <div id="inviteMsg" class="auth-msg" style="margin-top:12px"></div>
       </div>
 
       <div class="card">
-        <div class="card-title">Fixed Annual Costs</div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label>Insurance (annual)</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="insuranceAnnual" value="850" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>HOA (monthly)</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="hoaMonthly" value="0" oninput="calc()"></div>
-          </div>
-          <div class="form-group">
-            <label>Water / Sewer (annual)</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="waterAnnual" value="0" oninput="calc()"></div>
-          </div>
-        </div>
+        <div class="card-title">Users</div>
+        <div id="adminUserList"><div class="empty-state"><p>Loading users…</p></div></div>
       </div>
     </div>
 
-    <div>
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Investment Stack</div>
-        <div id="investmentStack"></div>
-      </div>
-
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-title">Monthly P&L</div>
-        <div id="monthlyPL"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Annual Returns</div>
-        <div id="annualReturns"></div>
-      </div>
+    <div class="card" style="margin-top:20px">
+      <div class="card-title">All Properties</div>
+      <div id="adminPropList"></div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════ GAUGES TAB ═══════════════════════════════════ -->
-<div id="tab-gauges" class="tab-content">
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">Deal Quality Gauges</div>
-      <div id="gaugesDeal"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Return Metrics</div>
-      <div id="gaugesReturn"></div>
-    </div>
-    <div class="card" style="grid-column:1/-1">
-      <div class="card-title">Expense & Efficiency Ratios</div>
-      <div class="grid-2" style="gap:0">
-        <div id="gaugesExpLeft" style="padding-right:20px;border-right:1px solid var(--border)"></div>
-        <div id="gaugesExpRight" style="padding-left:20px"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════ AI COMPS TAB ═══════════════════════════════════ -->
-<div id="tab-comps" class="tab-content">
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-title">Anthropic API Key</div>
-    <div class="api-key-row">
-      <input type="password" id="apiKey" placeholder="sk-ant-..." style="font-family:monospace">
-      <button class="btn btn-primary" onclick="runComps()">
-        <span id="compsSpinner" style="display:none" class="spinner"></span>
-        <span id="compsBtnText">Run AI Comps</span>
-      </button>
-    </div>
-    <div style="font-size:0.78rem;color:var(--text3);margin-top:8px">Key is used only for this browser session and never stored.</div>
-  </div>
-
-  <div id="compsResults" style="display:none">
-    <div class="grid-2" style="margin-bottom:20px">
-      <div class="card">
-        <div class="card-title">ARV Analysis</div>
-        <div id="arvAnalysis"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Rent Analysis</div>
-        <div id="rentAnalysis"></div>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:20px">
-      <div class="card-title">Comparable Sales</div>
-      <div id="compsList"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Investment Flags</div>
-      <div id="compFlags"></div>
-    </div>
-  </div>
-
-  <div id="compsError" style="display:none" class="card">
-    <div style="color:var(--red);font-size:0.9rem" id="compsErrorMsg"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════ MANAGEMENT TAB ═══════════════════════════════════ -->
-<div id="tab-mgmt" class="tab-content">
-  <div class="grid-2" style="margin-bottom:20px">
-    <div class="card">
-      <div class="card-title">Current Tenant / Lease</div>
-      <div class="form-group"><label>Tenant Name</label><input type="text" id="tenantName" placeholder="Jane Smith"></div>
-      <div class="form-group"><label>Lease Start</label><input type="date" id="leaseStart"></div>
-      <div class="form-group"><label>Lease End</label><input type="date" id="leaseEnd"></div>
-      <div class="form-group"><label>Monthly Rent</label><div class="input-prefix"><span>$</span><input type="number" id="tenantRent" value="1150"></div></div>
-      <div class="form-group">
-        <label>Status</label>
-        <select id="tenantStatus">
-          <option value="current">Current</option>
-          <option value="notice">Notice Given</option>
-          <option value="vacant">Vacant</option>
-        </select>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="saveTenant()">Save Tenant</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title">YTD Performance</div>
-      <div id="ytdChart"></div>
-      <div class="sep"></div>
-      <div style="display:flex;gap:20px">
-        <div class="metric" style="flex:1"><div class="metric-label">YTD Income</div><div class="metric-value green" id="ytdIncome">$0</div></div>
-        <div class="metric" style="flex:1"><div class="metric-label">YTD Expenses</div><div class="metric-value red" id="ytdExpenses">$0</div></div>
-        <div class="metric" style="flex:1"><div class="metric-label">YTD Net</div><div class="metric-value" id="ytdNet">$0</div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div class="card-title" style="margin-bottom:0">Transaction Log</div>
-      <button class="btn btn-secondary btn-sm" onclick="showAddTx()">+ Add Transaction</button>
-    </div>
-
-    <div id="addTxForm" style="display:none;background:var(--surface2);border-radius:8px;padding:16px;margin-bottom:16px">
-      <div class="grid-2">
-        <div class="form-group"><label>Date</label><input type="date" id="txDate"></div>
-        <div class="form-group"><label>Type</label>
-          <select id="txType">
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Category</label>
-          <select id="txCategory">
-            <option>Rent</option><option>Security Deposit</option><option>Late Fee</option>
-            <option>Maintenance</option><option>Repairs</option><option>Insurance</option>
-            <option>Property Tax</option><option>Management Fee</option><option>Utilities</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Amount</label><div class="input-prefix"><span>$</span><input type="number" id="txAmount" placeholder="0"></div></div>
-        <div class="form-group" style="grid-column:1/-1"><label>Notes</label><input type="text" id="txNotes" placeholder="Optional notes"></div>
-      </div>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-primary btn-sm" onclick="addTx()">Add</button>
-        <button class="btn btn-secondary btn-sm" onclick="hideAddTx()">Cancel</button>
-      </div>
-    </div>
-
-    <table class="mgmt-table" id="txTable">
-      <thead><tr><th>Date</th><th>Category</th><th>Notes</th><th>Amount</th><th></th></tr></thead>
-      <tbody id="txBody"></tbody>
-    </table>
-    <div id="txEmpty" style="text-align:center;padding:30px;color:var(--text3);font-size:0.85rem">No transactions yet. Add your first one above.</div>
-  </div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-// ─────────────────── STATE ───────────────────
-const state = {
-  transactions: JSON.parse(localStorage.getItem('opa_tx') || '[]'),
-  tenant: JSON.parse(localStorage.getItem('opa_tenant') || 'null'),
-};
+// ═══════════════════════════════════════════════════════
+// SUPABASE SETUP
+// ═══════════════════════════════════════════════════════
+const SCHEMA_SQL = `
+-- Run this in Supabase SQL Editor
 
-// ─────────────────── TAB NAVIGATION ───────────────────
-function showTab(name) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
-  renderTab(name);
+create table if not exists profiles (
+  id uuid references auth.users on delete cascade primary key,
+  email text,
+  full_name text,
+  role text default 'user' check (role in ('admin','user')),
+  created_at timestamptz default now()
+);
+alter table profiles enable row level security;
+create policy "self" on profiles for all using (auth.uid() = id);
+create policy "admin_read" on profiles for select using (
+  exists(select 1 from profiles where id=auth.uid() and role='admin')
+);
+
+create table if not exists properties (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  address text default '',
+  county text default 'Franklin (Columbus)',
+  property_type text default 'Single family',
+  beds numeric default 3,
+  baths numeric default 1.5,
+  sqft numeric default 1200,
+  year_built numeric default 1965,
+  purchase_price numeric default 56000,
+  arv numeric default 80000,
+  renovation numeric default 20000,
+  inspection numeric default 325,
+  title_cost numeric default 500,
+  wholesale_fee numeric default 6000,
+  realtor numeric default 0,
+  monthly_rent numeric default 1150,
+  vacancy_pct numeric default 7,
+  maintenance_pct numeric default 7,
+  management_pct numeric default 10,
+  repairs_pct numeric default 7,
+  tax_pct numeric default 10,
+  insurance_annual numeric default 850,
+  hoa_monthly numeric default 0,
+  water_annual numeric default 0,
+  down_pct numeric default 20,
+  interest_rate numeric default 7.5,
+  loan_term numeric default 30,
+  yield_target numeric default 10.5,
+  status text default 'analyzing',
+  notes text default '',
+  tenant_name text default '',
+  lease_start text default '',
+  lease_end text default '',
+  tenant_rent numeric default 1150,
+  tenant_status text default 'vacant',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+alter table properties enable row level security;
+create policy "own_props" on properties for all using (auth.uid() = user_id);
+create policy "admin_read_props" on properties for select using (
+  exists(select 1 from profiles where id=auth.uid() and role='admin')
+);
+
+create table if not exists transactions (
+  id uuid default gen_random_uuid() primary key,
+  property_id uuid references properties on delete cascade not null,
+  user_id uuid references auth.users on delete cascade not null,
+  date date not null,
+  type text check (type in ('income','expense')),
+  category text,
+  amount numeric not null,
+  notes text default '',
+  created_at timestamptz default now()
+);
+alter table transactions enable row level security;
+create policy "own_tx" on transactions for all using (auth.uid() = user_id);
+
+-- Auto-create profile, first user becomes admin
+create or replace function handle_new_user()
+returns trigger as $$
+declare user_count int;
+begin
+  select count(*) into user_count from public.profiles;
+  insert into public.profiles(id, email, role)
+  values(new.id, new.email, case when user_count=0 then 'admin' else 'user' end);
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users for each row execute procedure handle_new_user();
+`;
+
+let _sb = null;
+let currentUser = null;
+let currentProfile = null;
+let currentPropertyId = null;
+let propertyTransactions = [];
+
+function getSB() {
+  if (_sb) return _sb;
+  const cfg = getConfig();
+  if (!cfg) return null;
+  _sb = supabase.createClient(cfg.url, cfg.key);
+  return _sb;
 }
 
-function renderTab(name) {
+function getConfig() {
+  const s = localStorage.getItem('opa_sb_config');
+  return s ? JSON.parse(s) : null;
+}
+
+async function saveConfig() {
+  const url = document.getElementById('sbUrl').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('sbKey').value.trim();
+  if (!url || !key) { showSetupMsg('Enter both URL and key.', true); return; }
+  _sb = supabase.createClient(url, key);
+  try {
+    await _sb.from('profiles').select('id').limit(1);
+    localStorage.setItem('opa_sb_config', JSON.stringify({ url, key }));
+    showSetupMsg('Connected!', false);
+    setTimeout(bootApp, 500);
+  } catch(e) {
+    showSetupMsg('Could not connect: ' + e.message, true);
+  }
+}
+
+function showSetupMsg(msg, err) {
+  const el = document.getElementById('setupMsg');
+  el.textContent = msg; el.className = 'auth-msg ' + (err ? 'err' : 'ok');
+}
+
+function resetConfig() {
+  localStorage.removeItem('opa_sb_config');
+  _sb = null;
+  showScreen('setup');
+}
+
+function copySchema() {
+  navigator.clipboard.writeText(SCHEMA_SQL).then(() => toast('SQL schema copied to clipboard'));
+}
+
+// ═══════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════
+async function bootApp() {
+  const cfg = getConfig();
+  if (!cfg) { showScreen('setup'); return; }
+  const sb = getSB();
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await loadUserContext(session.user);
+    showScreen('app');
+  } else {
+    showScreen('auth');
+  }
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      await loadUserContext(session.user);
+      showScreen('app');
+    } else if (event === 'SIGNED_OUT') {
+      currentUser = null; currentProfile = null;
+      showScreen('auth');
+    }
+  });
+}
+
+async function loadUserContext(user) {
+  currentUser = user;
+  const sb = getSB();
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  if (!profile) {
+    await sb.from('profiles').insert({ id: user.id, email: user.email, role: 'user' });
+    currentProfile = { id: user.id, email: user.email, role: 'user' };
+  } else {
+    currentProfile = profile;
+  }
+  document.getElementById('navUserEmail').textContent = user.email;
+  if (currentProfile.role === 'admin') {
+    document.getElementById('navRoleBadge').style.display = 'inline-block';
+    document.getElementById('navAdmin').style.display = 'inline-block';
+  }
+  await loadDashboard();
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════
+function switchAuth(mode) {
+  document.getElementById('authFormSignIn').style.display = mode === 'signin' ? '' : 'none';
+  document.getElementById('authFormSignUp').style.display = mode === 'signup' ? '' : 'none';
+  document.getElementById('tabSignIn').className = 'auth-tab' + (mode === 'signin' ? ' active' : '');
+  document.getElementById('tabSignUp').className = 'auth-tab' + (mode === 'signup' ? ' active' : '');
+  document.getElementById('authMsg').className = 'auth-msg';
+}
+
+async function signIn() {
+  const email = document.getElementById('siEmail').value.trim();
+  const password = document.getElementById('siPassword').value;
+  const { error } = await getSB().auth.signInWithPassword({ email, password });
+  if (error) setAuthMsg(error.message, true);
+}
+
+async function signUp() {
+  const name  = document.getElementById('suName').value.trim();
+  const email = document.getElementById('suEmail').value.trim();
+  const password = document.getElementById('suPassword').value;
+  const { error } = await getSB().auth.signUp({ email, password, options: { data: { full_name: name } } });
+  if (error) setAuthMsg(error.message, true);
+  else setAuthMsg('Account created! Check your email to confirm, then sign in.', false);
+}
+
+async function signOut() { await getSB().auth.signOut(); }
+
+function setAuthMsg(msg, err) {
+  const el = document.getElementById('authMsg');
+  el.textContent = msg; el.className = 'auth-msg ' + (err ? 'err' : 'ok');
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+function showPage(name) {
+  document.querySelectorAll('#screen-app .page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-tab[id^="nav"]').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('nav' + name.charAt(0).toUpperCase() + name.slice(1));
+  if (btn) btn.classList.add('active');
+  if (name === 'admin') loadAdminPage();
+}
+
+function showAnalTab(name, btn) {
+  document.querySelectorAll('#page-property .page').forEach(p => p.classList.remove('active'));
+  document.getElementById('anal-' + name).classList.add('active');
+  document.querySelectorAll('#page-property .nav-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
   if (name === 'gauges') renderGauges();
   if (name === 'mgmt') renderMgmt();
 }
 
-// ─────────────────── GATHER INPUTS ───────────────────
+// ═══════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════
+let allProperties = [];
+
+async function loadDashboard() {
+  const sb = getSB();
+  const { data, error } = await sb.from('properties').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  allProperties = data || [];
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const props = allProperties;
+  // Portfolio summary
+  let totalInv = 0, totalNOI = 0, owned = 0, analyzing = 0;
+  props.forEach(p => {
+    const m = compute(propToInputs(p));
+    totalInv += m.totalInvestment;
+    totalNOI += m.noiYearly;
+    if (p.status === 'owned') owned++;
+    if (p.status === 'analyzing') analyzing++;
+  });
+  document.getElementById('portfolioSummary').innerHTML = `
+    <div class="metric"><div class="metric-label">Properties</div><div class="metric-value">${props.length}</div></div>
+    <div class="metric"><div class="metric-label">Total Invested</div><div class="metric-value">$${fmtShort(totalInv)}</div></div>
+    <div class="metric"><div class="metric-label">Portfolio NOI/yr</div><div class="metric-value ${totalNOI >= 0 ? 'green' : 'red'}">$${fmtShort(totalNOI)}</div></div>
+    <div class="metric"><div class="metric-label">Owned / Analyzing</div><div class="metric-value">${owned} <span style="color:var(--text3);font-size:1rem">/ ${analyzing}</span></div></div>`;
+
+  if (props.length === 0) {
+    document.getElementById('propGrid').innerHTML = `<div class="empty-state">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+      <p>No properties yet. Add your first deal.</p>
+      <button class="btn btn-primary" onclick="openNewProperty()">+ Add Property</button>
+    </div>`;
+    return;
+  }
+
+  document.getElementById('propGrid').innerHTML = `<div class="grid-2">${props.map(p => propCardHTML(p)).join('')}</div>`;
+}
+
+function propCardHTML(p) {
+  const m = compute(propToInputs(p));
+  return `<div class="prop-card" onclick="openProperty('${p.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div class="prop-addr">${p.address || 'Untitled Property'}</div>
+      <span class="status-pill s-${p.status}">${p.status.replace('_',' ')}</span>
+    </div>
+    <div class="prop-meta">${p.county} · ${p.property_type} · ${p.beds}bd/${p.baths}ba</div>
+    <div class="prop-metrics">
+      <div class="prop-metric"><div class="prop-metric-label">Purchase</div><div class="prop-metric-val">$${fmt(p.purchase_price)}</div></div>
+      <div class="prop-metric"><div class="prop-metric-label">NOI/yr</div><div class="prop-metric-val ${m.noiYearly >= 0 ? 'green' : 'red'}">$${fmt(m.noiYearly)}</div></div>
+      <div class="prop-metric"><div class="prop-metric-label">COC ROI</div><div class="prop-metric-val ${colorClass(m.cocRoi,8,4)}">${fmtPct(m.cocRoi)}</div></div>
+      <div class="prop-metric"><div class="prop-metric-label">Health</div><div class="prop-metric-val ${m.healthScore >= 70 ? 'green' : m.healthScore >= 40 ? 'yellow' : 'red'}">${Math.round(m.healthScore)}</div></div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// PROPERTY CRUD
+// ═══════════════════════════════════════════════════════
+async function openNewProperty() {
+  const sb = getSB();
+  const { data, error } = await sb.from('properties').insert({ user_id: currentUser.id }).select().single();
+  if (error) { toast('Error creating property: ' + error.message); return; }
+  allProperties.unshift(data);
+  openProperty(data.id);
+}
+
+async function openProperty(id) {
+  currentPropertyId = id;
+  const p = allProperties.find(x => x.id === id);
+  if (!p) return;
+
+  // Load inputs
+  const fields = ['address','county','property_type','beds','baths','sqft','year_built',
+    'purchase_price','arv','renovation','inspection','title_cost','wholesale_fee','realtor',
+    'monthly_rent','vacancy_pct','maintenance_pct','management_pct','repairs_pct','tax_pct',
+    'insurance_annual','hoa_monthly','water_annual','down_pct','interest_rate','loan_term',
+    'yield_target','tenant_name','lease_start','lease_end','tenant_rent','tenant_status'];
+
+  const map = { title_cost:'pa_title', wholesale_fee:'pa_wholesaleFee', property_type:'pa_propType',
+    purchase_price:'pa_purchasePrice', monthly_rent:'pa_monthlyRent', vacancy_pct:'pa_vacancyPct',
+    maintenance_pct:'pa_maintenancePct', management_pct:'pa_managementPct', repairs_pct:'pa_repairsPct',
+    tax_pct:'pa_taxPct', insurance_annual:'pa_insuranceAnnual', hoa_monthly:'pa_hoaMonthly',
+    water_annual:'pa_waterAnnual', down_pct:'pa_downPct', interest_rate:'pa_interestRate',
+    loan_term:'pa_loanTerm', yield_target:'pa_yieldTarget', year_built:'pa_yearBuilt',
+    tenant_name:'pa_tenantName', lease_start:'pa_leaseStart', lease_end:'pa_leaseEnd',
+    tenant_rent:'pa_tenantRent', tenant_status:'pa_tenantStatus' };
+
+  fields.forEach(f => {
+    const elId = map[f] || 'pa_' + f;
+    const el = document.getElementById(elId);
+    if (el && p[f] !== null && p[f] !== undefined) el.value = p[f];
+  });
+  document.getElementById('propStatus').value = p.status || 'analyzing';
+
+  // Load transactions
+  const sb = getSB();
+  const { data: txs } = await sb.from('transactions').select('*').eq('property_id', id).order('date', { ascending: false });
+  propertyTransactions = txs || [];
+
+  showPage('property');
+  // Reset to deal tab
+  showAnalTab('deal', document.querySelector('#page-property .nav-tab'));
+  calc();
+}
+
+function gatherPropertyData() {
+  const g = id => { const el = document.getElementById(id); return el ? (el.type === 'number' ? parseFloat(el.value)||0 : el.value) : null; };
+  return {
+    address: g('pa_address'), county: g('pa_county'), property_type: g('pa_propType'),
+    beds: g('pa_beds'), baths: g('pa_baths'), sqft: g('pa_sqft'), year_built: g('pa_yearBuilt'),
+    purchase_price: g('pa_purchasePrice'), arv: g('pa_arv'), renovation: g('pa_renovation'),
+    inspection: g('pa_inspection'), title_cost: g('pa_title'), wholesale_fee: g('pa_wholesaleFee'),
+    realtor: g('pa_realtor'), monthly_rent: g('pa_monthlyRent'), vacancy_pct: g('pa_vacancyPct'),
+    maintenance_pct: g('pa_maintenancePct'), management_pct: g('pa_managementPct'),
+    repairs_pct: g('pa_repairsPct'), tax_pct: g('pa_taxPct'),
+    insurance_annual: g('pa_insuranceAnnual'), hoa_monthly: g('pa_hoaMonthly'), water_annual: g('pa_waterAnnual'),
+    down_pct: g('pa_downPct'), interest_rate: g('pa_interestRate'), loan_term: g('pa_loanTerm'),
+    yield_target: g('pa_yieldTarget'), status: document.getElementById('propStatus').value,
+    tenant_name: g('pa_tenantName'), lease_start: g('pa_leaseStart'), lease_end: g('pa_leaseEnd'),
+    tenant_rent: g('pa_tenantRent'), tenant_status: g('pa_tenantStatus'),
+    updated_at: new Date().toISOString()
+  };
+}
+
+async function saveProperty() {
+  if (!currentPropertyId) return;
+  const spinner = document.getElementById('savePropSpinner');
+  spinner.style.display = 'inline-block';
+  const data = gatherPropertyData();
+  const { error } = await getSB().from('properties').update(data).eq('id', currentPropertyId);
+  spinner.style.display = 'none';
+  if (error) { toast('Save failed: ' + error.message); return; }
+  const idx = allProperties.findIndex(x => x.id === currentPropertyId);
+  if (idx !== -1) allProperties[idx] = { ...allProperties[idx], ...data };
+  toast('Property saved');
+}
+
+async function savePropStatus() {
+  if (!currentPropertyId) return;
+  const status = document.getElementById('propStatus').value;
+  await getSB().from('properties').update({ status }).eq('id', currentPropertyId);
+  const idx = allProperties.findIndex(x => x.id === currentPropertyId);
+  if (idx !== -1) allProperties[idx].status = status;
+  toast('Status updated');
+}
+
+async function deleteProperty() {
+  if (!currentPropertyId) return;
+  if (!confirm('Delete this property and all its transactions?')) return;
+  const { error } = await getSB().from('properties').delete().eq('id', currentPropertyId);
+  if (error) { toast('Delete failed'); return; }
+  allProperties = allProperties.filter(x => x.id !== currentPropertyId);
+  currentPropertyId = null;
+  showPage('dashboard');
+  renderDashboard();
+  toast('Property deleted');
+}
+
+// ═══════════════════════════════════════════════════════
+// CALCULATIONS
+// ═══════════════════════════════════════════════════════
+function propToInputs(p) {
+  return {
+    purchasePrice: +p.purchase_price||0, arv: +p.arv||0, renovation: +p.renovation||0,
+    inspection: +p.inspection||0, title: +p.title_cost||0, wholesaleFee: +p.wholesale_fee||0,
+    realtor: +p.realtor||0, monthlyRent: +p.monthly_rent||0, vacancyPct: +p.vacancy_pct||7,
+    maintenancePct: +p.maintenance_pct||7, managementPct: +p.management_pct||10,
+    repairsPct: +p.repairs_pct||7, taxPct: +p.tax_pct||10,
+    insuranceAnnual: +p.insurance_annual||850, hoaMonthly: +p.hoa_monthly||0,
+    waterAnnual: +p.water_annual||0, downPct: +p.down_pct||20,
+    interestRate: +p.interest_rate||7.5, loanTerm: +p.loan_term||30,
+    yieldTarget: +p.yield_target||10.5,
+  };
+}
+
 function inputs() {
   const g = id => parseFloat(document.getElementById(id)?.value) || 0;
   return {
-    purchasePrice: g('purchasePrice'),
-    arv: g('arv'),
-    renovation: g('renovation'),
-    inspection: g('inspection'),
-    title: g('title'),
-    wholesaleFee: g('wholesaleFee'),
-    realtor: g('realtor'),
-    monthlyRent: g('monthlyRent'),
-    vacancyPct: g('vacancyPct'),
-    maintenancePct: g('maintenancePct'),
-    managementPct: g('managementPct'),
-    repairsPct: g('repairsPct'),
-    taxPct: g('taxPct'),
-    insuranceAnnual: g('insuranceAnnual'),
-    hoaMonthly: g('hoaMonthly'),
-    waterAnnual: g('waterAnnual'),
-    downPct: g('downPct'),
-    interestRate: g('interestRate'),
-    loanTerm: g('loanTerm') || 30,
-    yieldTarget: g('yieldTarget'),
+    purchasePrice: g('pa_purchasePrice'), arv: g('pa_arv'), renovation: g('pa_renovation'),
+    inspection: g('pa_inspection'), title: g('pa_title'), wholesaleFee: g('pa_wholesaleFee'),
+    realtor: g('pa_realtor'), monthlyRent: g('pa_monthlyRent'), vacancyPct: g('pa_vacancyPct'),
+    maintenancePct: g('pa_maintenancePct'), managementPct: g('pa_managementPct'),
+    repairsPct: g('pa_repairsPct'), taxPct: g('pa_taxPct'), insuranceAnnual: g('pa_insuranceAnnual'),
+    hoaMonthly: g('pa_hoaMonthly'), waterAnnual: g('pa_waterAnnual'), downPct: g('pa_downPct'),
+    interestRate: g('pa_interestRate'), loanTerm: g('pa_loanTerm')||30, yieldTarget: g('pa_yieldTarget'),
   };
 }
 
-// ─────────────────── CORE CALCULATIONS ───────────────────
 function compute(p) {
   const totalInvestment = p.purchasePrice + p.renovation + p.inspection + p.title + p.wholesaleFee + p.realtor;
-  const downAmt = p.purchasePrice * (p.downPct / 100);
+  const downAmt = p.purchasePrice * (p.downPct/100);
   const cashInvested = downAmt + p.renovation + p.inspection + p.title + p.wholesaleFee + p.realtor;
-  const loanAmt = p.purchasePrice * (1 - p.downPct / 100);
-
-  // Mortgage
-  const mr = p.interestRate / 100 / 12;
-  const n = p.loanTerm * 12;
-  const mortgage = loanAmt > 0 && mr > 0
-    ? loanAmt * mr * Math.pow(1 + mr, n) / (Math.pow(1 + mr, n) - 1)
-    : loanAmt / n;
-
-  // Income
-  const vacancyMonthly = p.monthlyRent * (p.vacancyPct / 100);
-  const opIncomeMonthly = p.monthlyRent - vacancyMonthly;
-  const opIncomeYearly = opIncomeMonthly * 12;
-
-  // Expenses
-  const agr = p.monthlyRent * 12;
-  const maint = agr * (p.maintenancePct / 100) / 12;
-  const mgmt  = agr * (p.managementPct / 100) / 12;
-  const repair= agr * (p.repairsPct / 100) / 12;
-  const tax   = agr * (p.taxPct / 100) / 12;
-  const ins   = p.insuranceAnnual / 12;
-  const hoa   = p.hoaMonthly;
-  const water = p.waterAnnual / 12;
-  const totalExpMonth = maint + mgmt + repair + tax + ins + hoa + water + vacancyMonthly;
-  const totalExpYear  = totalExpMonth * 12;
-
-  // NOI
-  const noiMonthly = opIncomeMonthly - (totalExpMonth - vacancyMonthly);
-  const noiYearly  = noiMonthly * 12;
-
-  // Returns
-  const cocYearly  = noiYearly - mortgage * 12;
-  const cocMonthly = cocYearly / 12;
-  const roi        = p.purchasePrice > 0 ? noiYearly / totalInvestment * 100 : 0;
-  const cocRoi     = cashInvested > 0 ? cocYearly / cashInvested * 100 : 0;
-  const capRate    = p.purchasePrice > 0 ? noiYearly / p.purchasePrice * 100 : 0;
-  const twoRule    = p.purchasePrice > 0 ? p.monthlyRent / p.purchasePrice * 100 : 0;
-  const fiftyRule  = opIncomeYearly > 0 ? totalExpYear / opIncomeYearly * 100 : 0;
-  const grm        = p.monthlyRent > 0 ? p.purchasePrice / (p.monthlyRent * 12) : 0;
-  const noiMargin  = opIncomeYearly > 0 ? noiYearly / opIncomeYearly * 100 : 0;
-  const discount   = p.arv > 0 ? (p.arv - p.purchasePrice) / p.arv * 100 : 0;
-  const mao        = p.arv * 0.70 - p.renovation;
-  const offerPrice = p.yieldTarget > 0 ? (p.monthlyRent * 12) / (p.yieldTarget / 100) - p.renovation : 0;
-
-  // Health score
+  const loanAmt = p.purchasePrice * (1 - p.downPct/100);
+  const mr = p.interestRate/100/12, n = p.loanTerm*12;
+  const mortgage = loanAmt > 0 && mr > 0 ? loanAmt*mr*Math.pow(1+mr,n)/(Math.pow(1+mr,n)-1) : loanAmt/n;
+  const vacMonth = p.monthlyRent*(p.vacancyPct/100);
+  const opIncMonth = p.monthlyRent - vacMonth, opIncYear = opIncMonth*12;
+  const agr = p.monthlyRent*12;
+  const maint=agr*(p.maintenancePct/100)/12, mgmt=agr*(p.managementPct/100)/12,
+    repair=agr*(p.repairsPct/100)/12, tax=agr*(p.taxPct/100)/12,
+    ins=p.insuranceAnnual/12, hoa=p.hoaMonthly, water=p.waterAnnual/12;
+  const totalExpMonth = maint+mgmt+repair+tax+ins+hoa+water+vacMonth;
+  const totalExpYear = totalExpMonth*12;
+  const noiMonthly = opIncMonth-(totalExpMonth-vacMonth), noiYearly = noiMonthly*12;
+  const cocYearly = noiYearly-mortgage*12, cocMonthly = cocYearly/12;
+  const roi = p.purchasePrice>0 ? noiYearly/totalInvestment*100 : 0;
+  const cocRoi = cashInvested>0 ? cocYearly/cashInvested*100 : 0;
+  const capRate = p.purchasePrice>0 ? noiYearly/p.purchasePrice*100 : 0;
+  const twoRule = p.purchasePrice>0 ? p.monthlyRent/p.purchasePrice*100 : 0;
+  const fiftyRule = opIncYear>0 ? totalExpYear/opIncYear*100 : 0;
+  const grm = p.monthlyRent>0 ? p.purchasePrice/(p.monthlyRent*12) : 0;
+  const noiMargin = opIncYear>0 ? noiYearly/opIncYear*100 : 0;
+  const discount = p.arv>0 ? (p.arv-p.purchasePrice)/p.arv*100 : 0;
+  const mao = p.arv*0.70 - p.renovation;
+  const offerPrice = p.yieldTarget>0 ? (p.monthlyRent*12)/(p.yieldTarget/100)-p.renovation : 0;
   let pts = 0;
-  const cr = [
-    { label: 'Discount ≥ 30%', val: discount.toFixed(1)+'%', pass: discount >= 30, warn: discount >= 20, score: discount >= 30 ? 1 : discount >= 20 ? 0.5 : 0 },
-    { label: '2% Rule ≥ 2%', val: twoRule.toFixed(2)+'%', pass: twoRule >= 2, warn: twoRule >= 1.5, score: twoRule >= 2 ? 1 : twoRule >= 1.5 ? 0.5 : 0 },
-    { label: '70% MAO satisfied', val: '$'+fmt(p.purchasePrice)+'≤$'+fmt(mao), pass: p.purchasePrice <= mao, warn: false, score: p.purchasePrice <= mao ? 1 : 0 },
-    { label: 'ROI ≥ yield target', val: roi.toFixed(1)+'%', pass: roi >= p.yieldTarget, warn: roi >= p.yieldTarget * 0.8, score: roi >= p.yieldTarget ? 1 : roi >= p.yieldTarget * 0.8 ? 0.5 : 0 },
-    { label: 'COC Return ≥ 8%', val: cocRoi.toFixed(1)+'%', pass: cocRoi >= 8, warn: cocRoi >= 4, score: cocRoi >= 8 ? 1 : cocRoi >= 4 ? 0.5 : 0 },
-    { label: 'Cap Rate ≥ 6%', val: capRate.toFixed(1)+'%', pass: capRate >= 6, warn: capRate >= 4, score: capRate >= 6 ? 1 : capRate >= 4 ? 0.5 : 0 },
-    { label: '50% Rule ≤ 50%', val: fiftyRule.toFixed(1)+'%', pass: fiftyRule <= 50, warn: fiftyRule <= 60, score: fiftyRule <= 50 ? 1 : fiftyRule <= 60 ? 0.5 : 0 },
-    { label: 'GRM ≤ 10x', val: grm.toFixed(1)+'x', pass: grm <= 10, warn: grm <= 14, score: grm <= 10 ? 1 : grm <= 14 ? 0.5 : 0 },
+  const criteria = [
+    {label:'Discount ≥ 30%',val:fmtPct(discount),pass:discount>=30,warn:discount>=20,score:discount>=30?1:discount>=20?.5:0},
+    {label:'2% Rule ≥ 2%',val:fmtPct(twoRule),pass:twoRule>=2,warn:twoRule>=1.5,score:twoRule>=2?1:twoRule>=1.5?.5:0},
+    {label:'70% MAO',val:'$'+fmt(p.purchasePrice)+'≤$'+fmt(mao),pass:p.purchasePrice<=mao,warn:false,score:p.purchasePrice<=mao?1:0},
+    {label:'ROI ≥ yield target',val:fmtPct(roi),pass:roi>=p.yieldTarget,warn:roi>=p.yieldTarget*.8,score:roi>=p.yieldTarget?1:roi>=p.yieldTarget*.8?.5:0},
+    {label:'COC Return ≥ 8%',val:fmtPct(cocRoi),pass:cocRoi>=8,warn:cocRoi>=4,score:cocRoi>=8?1:cocRoi>=4?.5:0},
+    {label:'Cap Rate ≥ 6%',val:fmtPct(capRate),pass:capRate>=6,warn:capRate>=4,score:capRate>=6?1:capRate>=4?.5:0},
+    {label:'50% Rule ≤ 50%',val:fmtPct(fiftyRule),pass:fiftyRule<=50,warn:fiftyRule<=60,score:fiftyRule<=50?1:fiftyRule<=60?.5:0},
+    {label:'GRM ≤ 10x',val:grm.toFixed(1)+'x',pass:grm<=10,warn:grm<=14,score:grm<=10?1:grm<=14?.5:0},
   ];
-  cr.forEach(c => pts += c.score);
-  const healthScore = (pts / 8) * 100;
-
+  criteria.forEach(c => pts += c.score);
   return {
-    totalInvestment, cashInvested, loanAmt, downAmt, mortgage,
-    vacancyMonthly, opIncomeMonthly, opIncomeYearly,
-    maint, mgmt, repair, tax, ins, hoa, water,
-    totalExpMonth, totalExpYear,
-    noiMonthly, noiYearly, cocMonthly, cocYearly,
+    totalInvestment, cashInvested, loanAmt, downAmt, mortgage, vacMonth,
+    opIncMonth, opIncYear, maint, mgmt, repair, tax, ins, hoa, water,
+    totalExpMonth, totalExpYear, noiMonthly, noiYearly, cocMonthly, cocYearly,
     roi, cocRoi, capRate, twoRule, fiftyRule, grm, noiMargin,
-    discount, mao, offerPrice, healthScore, criteria: cr, agr
+    discount, mao, offerPrice, healthScore: (pts/8)*100, criteria, agr,
   };
 }
 
-// ─────────────────── FORMAT HELPERS ───────────────────
-function fmt(n) { return Math.round(n).toLocaleString(); }
-function fmtD(n) { return '$' + fmt(Math.abs(n)); }
-function fmtPct(n) { return n.toFixed(1) + '%'; }
-function colorClass(val, passThresh, warnThresh, invert=false) {
-  if (!invert) {
-    if (val >= passThresh) return 'green';
-    if (val >= warnThresh) return 'yellow';
-    return 'red';
-  } else {
-    if (val <= passThresh) return 'green';
-    if (val <= warnThresh) return 'yellow';
-    return 'red';
-  }
-}
-
-// ─────────────────── MAIN CALC + RENDER ───────────────────
+// ═══════════════════════════════════════════════════════
+// RENDER ANALYZERS
+// ═══════════════════════════════════════════════════════
 function calc() {
-  const p = inputs();
-  const m = compute(p);
+  const p = inputs(), m = compute(p);
   renderDeal(p, m);
   renderRental(p, m);
-  // gauges/mgmt rendered lazily when tab opens
 }
 
 function renderDeal(p, m) {
-  // Scorecard
   const checks = [
-    { name: 'Discount from ARV', value: fmtPct(m.discount), target: '≥ 30%', pass: m.discount >= 30, warn: m.discount >= 20 },
-    { name: '2% Rule', value: fmtPct(m.twoRule), target: '≥ 2%', pass: m.twoRule >= 2, warn: m.twoRule >= 1.5 },
-    { name: '70% MAO', value: '$'+fmt(m.mao), target: 'Purchase ≤ MAO', pass: p.purchasePrice <= m.mao, warn: false },
-    { name: 'Yield Offer Price', value: '$'+fmt(m.offerPrice), target: 'Purchase ≤ offer', pass: p.purchasePrice <= m.offerPrice, warn: p.purchasePrice <= m.offerPrice * 1.05 },
+    {name:'Discount from ARV',value:fmtPct(m.discount),target:'≥ 30%',pass:m.discount>=30,warn:m.discount>=20},
+    {name:'2% Rule',value:fmtPct(m.twoRule),target:'≥ 2%',pass:m.twoRule>=2,warn:m.twoRule>=1.5},
+    {name:'70% MAO',value:'$'+fmt(m.mao),target:'Purchase ≤ MAO',pass:p.purchasePrice<=m.mao,warn:false},
+    {name:'Yield Offer Price',value:'$'+fmt(m.offerPrice),target:'Purchase ≤ offer',pass:p.purchasePrice<=m.offerPrice,warn:p.purchasePrice<=m.offerPrice*1.05},
   ];
-  document.getElementById('scorecard').innerHTML = checks.map(c => {
-    const cls = c.pass ? 'badge-pass' : (c.warn ? 'badge-warn' : 'badge-fail');
-    const label = c.pass ? 'PASS' : (c.warn ? 'WARN' : 'FAIL');
-    return `<div class="scorecard-row">
-      <span class="badge ${cls}">${label}</span>
-      <span class="scorecard-name">${c.name}</span>
-      <span class="scorecard-values">${c.value} <span style="color:var(--text3)">(${c.target})</span></span>
-    </div>`;
+  document.getElementById('pa_scorecard').innerHTML = checks.map(c => {
+    const cls = c.pass?'badge-pass':c.warn?'badge-warn':'badge-fail';
+    const lbl = c.pass?'PASS':c.warn?'WARN':'FAIL';
+    return `<div class="scorecard-row"><span class="badge ${cls}">${lbl}</span><span class="scorecard-name">${c.name}</span><span class="scorecard-values">${c.value} <span style="color:var(--text3)">(${c.target})</span></span></div>`;
   }).join('');
-
-  // Health score
-  const hs = m.healthScore;
-  const circ = 339.3;
-  const offset = circ - (hs / 100) * circ;
-  const arc = document.getElementById('healthArc');
-  arc.setAttribute('stroke-dashoffset', offset);
-  arc.setAttribute('stroke', hs >= 70 ? 'var(--green)' : hs >= 40 ? 'var(--yellow)' : 'var(--red)');
-  document.getElementById('healthNum').textContent = Math.round(hs);
-  document.getElementById('healthNum').className = 'num ' + (hs >= 70 ? 'green' : hs >= 40 ? 'yellow' : 'red');
-
-  document.getElementById('healthCriteria').innerHTML = m.criteria.map(c => {
-    const icon = c.pass ? '✓' : (c.score > 0 ? '~' : '✗');
-    const cls = c.pass ? 'green' : (c.score > 0 ? 'yellow' : 'red');
-    return `<div class="${cls}" style="display:flex;gap:6px"><span>${icon}</span><span style="flex:1">${c.label}</span><span style="color:var(--text2)">${c.val}</span></div>`;
+  const hs = m.healthScore, circ = 314.2;
+  const arc = document.getElementById('pa_healthArc');
+  arc.setAttribute('stroke-dashoffset', circ-(hs/100)*circ);
+  arc.setAttribute('stroke', hs>=70?'var(--green)':hs>=40?'var(--yellow)':'var(--red)');
+  document.getElementById('pa_healthNum').textContent = Math.round(hs);
+  document.getElementById('pa_healthNum').className = 'num '+(hs>=70?'green':hs>=40?'yellow':'red');
+  document.getElementById('pa_healthCriteria').innerHTML = m.criteria.map(c => {
+    const ic = c.pass?'✓':c.score>0?'~':'✗';
+    const cl = c.pass?'green':c.score>0?'yellow':'red';
+    return `<div class="${cl}" style="display:flex;gap:6px"><span>${ic}</span><span style="flex:1">${c.label}</span><span style="color:var(--text2)">${c.val}</span></div>`;
   }).join('');
-
-  // Quick metrics
-  document.getElementById('offerPrice').innerHTML = `<span class="${p.purchasePrice <= m.offerPrice ? 'green' : 'red'}">$${fmt(m.offerPrice)}</span>`;
-  document.getElementById('mao').innerHTML = `<span class="${p.purchasePrice <= m.mao ? 'green' : 'red'}">$${fmt(m.mao)}</span>`;
-  document.getElementById('totalInv').textContent = '$'+fmt(m.totalInvestment);
-  document.getElementById('discount').innerHTML = `<span class="${colorClass(m.discount,30,20)}">` + fmtPct(m.discount) + '</span>';
+  document.getElementById('pa_offerPrice').innerHTML=`<span class="${p.purchasePrice<=m.offerPrice?'green':'red'}">$${fmt(m.offerPrice)}</span>`;
+  document.getElementById('pa_mao').innerHTML=`<span class="${p.purchasePrice<=m.mao?'green':'red'}">$${fmt(m.mao)}</span>`;
+  document.getElementById('pa_totalInv').textContent='$'+fmt(m.totalInvestment);
+  document.getElementById('pa_discount').innerHTML=`<span class="${colorClass(m.discount,30,20)}">${fmtPct(m.discount)}</span>`;
 }
 
 function renderRental(p, m) {
-  const row = (label, monthly, yearly, cls='') =>
-    `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.88rem">
-      <span style="color:var(--text2)">${label}</span>
-      <span style="display:flex;gap:20px">
-        <span class="${cls}" style="min-width:80px;text-align:right">${monthly !== null ? fmtD(monthly)+'/mo' : ''}</span>
-        <span class="${cls}" style="min-width:90px;text-align:right;color:var(--text3)">${yearly !== null ? fmtD(yearly)+'/yr' : ''}</span>
-      </span>
-    </div>`;
-
-  document.getElementById('investmentStack').innerHTML = `
-    ${row('Purchase Price', null, p.purchasePrice)}
-    ${row('Renovation', null, p.renovation)}
-    ${row('Inspection', null, p.inspection)}
-    ${row('Title', null, p.title)}
-    ${row('Wholesale Fee', null, p.wholesaleFee)}
-    ${row('Realtor', null, p.realtor)}
-    <div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:800;font-size:0.92rem">
-      <span>Total Investment</span><span>$${fmt(m.totalInvestment)}</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--text2)">
-      <span>Down Payment (${p.downPct}%)</span><span>$${fmt(m.downAmt)}</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--text2)">
-      <span>Cash Invested</span><span>$${fmt(m.cashInvested)}</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--text2)">
-      <span>Loan Amount</span><span>$${fmt(m.loanAmt)}</span>
-    </div>`;
-
-  document.getElementById('monthlyPL').innerHTML = `
-    ${row('Gross Rent', p.monthlyRent, p.monthlyRent*12, 'green')}
-    ${row('Vacancy ('+p.vacancyPct+'%)', -m.vacancyMonthly, -m.vacancyMonthly*12, 'red')}
-    ${row('Operating Income', m.opIncomeMonthly, m.opIncomeYearly)}
-    <div style="height:6px"></div>
-    ${row('Maintenance ('+p.maintenancePct+'%)', -m.maint, -m.maint*12, 'red')}
-    ${row('Management ('+p.managementPct+'%)', -m.mgmt, -m.mgmt*12, 'red')}
-    ${row('Repairs/CapEx ('+p.repairsPct+'%)', -m.repair, -m.repair*12, 'red')}
-    ${row('Property Tax ('+p.taxPct+'%)', -m.tax, -m.tax*12, 'red')}
-    ${row('Insurance', -m.ins, -p.insuranceAnnual, 'red')}
-    ${m.hoa > 0 ? row('HOA', -m.hoa, -m.hoa*12, 'red') : ''}
-    ${m.water > 0 ? row('Water/Sewer', -m.water, -p.waterAnnual, 'red') : ''}
-    <div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:800;font-size:0.92rem">
-      <span>NOI</span><span class="${m.noiMonthly >= 0 ? 'green' : 'red'}">$${fmt(m.noiMonthly)}/mo &nbsp; $${fmt(m.noiYearly)}/yr</span>
-    </div>
-    ${row('Mortgage (P&I)', -m.mortgage, -m.mortgage*12, 'red')}
-    <div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:800;font-size:0.92rem;border-top:2px solid var(--border)">
-      <span>Cash-on-Cash</span><span class="${m.cocMonthly >= 0 ? 'green' : 'red'}">$${fmt(m.cocMonthly)}/mo &nbsp; $${fmt(m.cocYearly)}/yr</span>
-    </div>`;
-
-  document.getElementById('annualReturns').innerHTML = `
-    <div class="grid-2" style="gap:10px">
-      <div class="metric"><div class="metric-label">ROI</div><div class="metric-value ${colorClass(m.roi,p.yieldTarget,p.yieldTarget*0.8)}">${fmtPct(m.roi)}</div><div class="metric-sub">NOI / total investment</div></div>
-      <div class="metric"><div class="metric-label">COC ROI</div><div class="metric-value ${colorClass(m.cocRoi,8,4)}">${fmtPct(m.cocRoi)}</div><div class="metric-sub">COC / cash invested</div></div>
-      <div class="metric"><div class="metric-label">Cap Rate</div><div class="metric-value ${colorClass(m.capRate,6,4)}">${fmtPct(m.capRate)}</div><div class="metric-sub">NOI / purchase price</div></div>
-      <div class="metric"><div class="metric-label">GRM</div><div class="metric-value ${colorClass(m.grm,10,14,true)}">${m.grm.toFixed(1)}x</div><div class="metric-sub">target ≤ 10x</div></div>
-    </div>`;
+  const row = (label,mo,yr,cls='') => `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:0.85rem">
+    <span style="color:var(--text2)">${label}</span>
+    <span style="display:flex;gap:16px">
+      <span class="${cls}" style="min-width:80px;text-align:right">${mo!==null?fmtD(mo)+'/mo':''}</span>
+      <span class="${cls}" style="min-width:88px;text-align:right;color:var(--text3)">${yr!==null?fmtD(yr)+'/yr':''}</span>
+    </span></div>`;
+  document.getElementById('pa_investStack').innerHTML = `
+    ${row('Purchase Price',null,p.purchasePrice)}${row('Renovation',null,p.renovation)}
+    ${row('Inspection',null,p.inspection)}${row('Title',null,p.title)}
+    ${row('Wholesale Fee',null,p.wholesaleFee)}${row('Realtor',null,p.realtor)}
+    <div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:800;font-size:0.9rem"><span>Total Investment</span><span>$${fmt(m.totalInvestment)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:0.82rem;color:var(--text2)"><span>Down (${p.downPct}%) / Loan</span><span>$${fmt(m.downAmt)} / $${fmt(m.loanAmt)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:0.82rem;color:var(--text2)"><span>Cash Invested</span><span>$${fmt(m.cashInvested)}</span></div>`;
+  document.getElementById('pa_monthlyPL').innerHTML = `
+    ${row('Gross Rent',p.monthlyRent,p.monthlyRent*12,'green')}
+    ${row('Vacancy ('+p.vacancyPct+'%)',-m.vacMonth,-m.vacMonth*12,'red')}
+    ${row('Operating Income',m.opIncMonth,m.opIncYear)}
+    <div style="height:5px"></div>
+    ${row('Maintenance',-m.maint,-m.maint*12,'red')}
+    ${row('Management',-m.mgmt,-m.mgmt*12,'red')}
+    ${row('Repairs/CapEx',-m.repair,-m.repair*12,'red')}
+    ${row('Property Tax',-m.tax,-m.tax*12,'red')}
+    ${row('Insurance',-m.ins,-p.insuranceAnnual,'red')}
+    ${m.hoa>0?row('HOA',-m.hoa,-m.hoa*12,'red'):''}
+    ${m.water>0?row('Water',-m.water,-p.waterAnnual,'red'):''}
+    <div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:800;font-size:0.9rem">
+      <span>NOI</span><span class="${m.noiMonthly>=0?'green':'red'}">$${fmt(m.noiMonthly)}/mo &nbsp; $${fmt(m.noiYearly)}/yr</span></div>
+    ${row('Mortgage (P&I)',-m.mortgage,-m.mortgage*12,'red')}
+    <div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:800;font-size:0.9rem;border-top:2px solid var(--border)">
+      <span>Cash-on-Cash</span><span class="${m.cocMonthly>=0?'green':'red'}">$${fmt(m.cocMonthly)}/mo &nbsp; $${fmt(m.cocYearly)}/yr</span></div>`;
+  document.getElementById('pa_annualReturns').innerHTML = `<div class="grid-2" style="gap:10px">
+    <div class="metric"><div class="metric-label">ROI</div><div class="metric-value ${colorClass(m.roi,p.yieldTarget,p.yieldTarget*.8)}">${fmtPct(m.roi)}</div><div class="metric-sub">NOI / total investment</div></div>
+    <div class="metric"><div class="metric-label">COC ROI</div><div class="metric-value ${colorClass(m.cocRoi,8,4)}">${fmtPct(m.cocRoi)}</div><div class="metric-sub">COC / cash invested</div></div>
+    <div class="metric"><div class="metric-label">Cap Rate</div><div class="metric-value ${colorClass(m.capRate,6,4)}">${fmtPct(m.capRate)}</div><div class="metric-sub">NOI / purchase price</div></div>
+    <div class="metric"><div class="metric-label">GRM</div><div class="metric-value ${colorClass(m.grm,10,14,true)}">${m.grm.toFixed(1)}x</div><div class="metric-sub">target ≤ 10x</div></div>
+  </div>`;
 }
 
-// ─────────────────── GAUGES ───────────────────
 function renderGauges() {
-  const p = inputs();
-  const m = compute(p);
-
-  function gauge(label, value, passT, warnT, max, invert, unitSuffix='%') {
-    const pct = Math.min(value / max * 100, 100);
-    const passPos = passT / max * 100;
-    const cls = invert
-      ? (value <= passT ? 'green' : value <= warnT ? 'yellow' : 'red')
-      : (value >= passT ? 'green' : value >= warnT ? 'yellow' : 'red');
-    const colors = { green: '#22c55e', yellow: '#eab308', red: '#ef4444' };
-    const displayVal = unitSuffix === 'x' ? value.toFixed(1)+'x' : fmtPct(value);
+  const p = inputs(), m = compute(p);
+  function gauge(label, value, passT, warnT, max, invert, suf='%') {
+    const pct = Math.min(value/max*100, 100);
+    const passPos = Math.min(passT/max*100, 100);
+    const cls = invert ? (value<=passT?'green':value<=warnT?'yellow':'red') : (value>=passT?'green':value>=warnT?'yellow':'red');
+    const colors = {green:'#22c55e',yellow:'#eab308',red:'#ef4444'};
+    const dv = suf==='x' ? value.toFixed(1)+'x' : fmtPct(value);
     return `<div class="gauge-wrap">
-      <div class="gauge-header">
-        <span class="gauge-label">${label}</span>
-        <span class="gauge-val ${cls}">${displayVal}</span>
-      </div>
+      <div class="gauge-header"><span class="gauge-label">${label}</span><span class="gauge-val ${cls}">${dv}</span></div>
       <div class="gauge-track">
         <div class="gauge-fill" style="width:${pct}%;background:${colors[cls]}"></div>
         <div class="gauge-marker" style="left:${passPos}%"></div>
       </div>
-      <div class="gauge-ticks"><span>0</span><span>${invert?'✓ ≤':'✓ ≥'}${passT}${unitSuffix}</span><span>${max}${unitSuffix}</span></div>
+      <div class="gauge-ticks"><span>0</span><span>${invert?'✓≤':'✓≥'}${passT}${suf}</span><span>${max}${suf}</span></div>
     </div>`;
   }
-
-  document.getElementById('gaugesDeal').innerHTML =
-    gauge('Discount from ARV', m.discount, 30, 20, 60) +
-    gauge('2% Rule', m.twoRule, 2, 1.5, 4) +
-    gauge('GRM', m.grm, 10, 14, 20, true, 'x');
-
-  document.getElementById('gaugesReturn').innerHTML =
-    gauge('ROI', m.roi, p.yieldTarget, p.yieldTarget*0.8, 25) +
-    gauge('COC Return', m.cocRoi, 8, 4, 20) +
-    gauge('Cap Rate', m.capRate, 6, 4, 15);
-
-  document.getElementById('gaugesExpLeft').innerHTML =
-    gauge('50% Rule', m.fiftyRule, 50, 60, 100, true) +
-    gauge('Vacancy Rate', (p.vacancyPct), 10, 15, 20, true);
-
-  document.getElementById('gaugesExpRight').innerHTML =
-    gauge('NOI Margin', m.noiMargin, 40, 20, 100) +
-    gauge('Expense Ratio', m.totalExpYear / (m.agr||1) * 100, 50, 65, 100, true);
+  document.getElementById('pa_gaugesDeal').innerHTML =
+    gauge('Discount from ARV',m.discount,30,20,60)+gauge('2% Rule',m.twoRule,2,1.5,4)+gauge('GRM',m.grm,10,14,20,true,'x');
+  document.getElementById('pa_gaugesReturn').innerHTML =
+    gauge('ROI',m.roi,p.yieldTarget,p.yieldTarget*.8,25)+gauge('COC Return',m.cocRoi,8,4,20)+gauge('Cap Rate',m.capRate,6,4,15);
+  document.getElementById('pa_gaugesLeft').innerHTML =
+    gauge('50% Rule',m.fiftyRule,50,60,100,true)+gauge('Vacancy Rate',p.vacancyPct,10,15,20,true);
+  document.getElementById('pa_gaugesRight').innerHTML =
+    gauge('NOI Margin',m.noiMargin,40,20,100)+gauge('Expense Ratio',m.totalExpYear/(m.agr||1)*100,50,65,100,true);
 }
 
-// ─────────────────── AI COMPS ───────────────────
+// ═══════════════════════════════════════════════════════
+// AI COMPS
+// ═══════════════════════════════════════════════════════
 async function runComps() {
-  const key = document.getElementById('apiKey').value.trim();
-  if (!key) { showCompsError('Please enter your Anthropic API key.'); return; }
-
-  const p = inputs();
-  const m = compute(p);
-
-  document.getElementById('compsSpinner').style.display = 'inline-block';
-  document.getElementById('compsBtnText').textContent = 'Running...';
-  document.getElementById('compsResults').style.display = 'none';
-  document.getElementById('compsError').style.display = 'none';
-
-  const prompt = `You are a real estate investment analyst specializing in Ohio residential properties.
-
-Property Details:
-- Address: ${document.getElementById('address').value || 'Ohio property'}
-- County: ${document.getElementById('county').value}
-- Type: ${document.getElementById('propType').value}
-- Beds/Baths/Sqft: ${document.getElementById('beds').value}bd / ${document.getElementById('baths').value}ba / ${document.getElementById('sqft').value} sqft
-- Year Built: ${document.getElementById('yearBuilt').value}
-- Purchase Price: $${fmt(p.purchasePrice)}
-- Investor ARV: $${fmt(p.arv)}
-- Monthly Rent: $${fmt(p.monthlyRent)}
-- 2% Rule: ${fmtPct(m.twoRule)}
-- Current date context: mid-2026
-
-Generate a comprehensive comp analysis. Return ONLY valid JSON matching this exact schema:
-{
-  "market_summary": "string",
-  "arv_analysis": {
-    "investor_arv": ${p.arv},
-    "ai_estimated_arv": number,
-    "confidence": "Low|Medium|High",
-    "arv_verdict": "Undervalued|On Target|Overvalued",
-    "commentary": "string"
-  },
-  "rent_analysis": {
-    "investor_rent": ${p.monthlyRent},
-    "market_rent_estimate": number,
-    "rent_verdict": "Below Market|At Market|Above Market"
-  },
-  "comps": [
-    {
-      "address": "string",
-      "sale_price": number,
-      "beds": number,
-      "baths": number,
-      "sqft": number,
-      "price_per_sqft": number,
-      "days_on_market": number,
-      "sold_months_ago": number,
-      "similarity": "Strong|Good|Fair",
-      "adjustment": number,
-      "notes": "string"
-    }
-  ],
-  "adjusted_value": number,
-  "price_per_sqft_range": { "low": number, "high": number },
-  "investment_flags": [{ "type": "Positive|Caution|Risk", "note": "string" }]
-}
-Generate exactly 4 realistic Ohio comparable properties. Return only JSON, no other text.`;
-
+  const key = document.getElementById('pa_apiKey').value.trim();
+  if (!key) { showCompsErr('Enter your Anthropic API key.'); return; }
+  const p = inputs(), m = compute(p);
+  document.getElementById('pa_compsSpinner').style.display='inline-block';
+  document.getElementById('pa_compsBtnTxt').textContent='Running...';
+  document.getElementById('pa_compsResults').style.display='none';
+  document.getElementById('pa_compsError').style.display='none';
+  const addr = document.getElementById('pa_address').value||'Ohio property';
+  const prompt=`You are a real estate investment analyst specializing in Ohio residential properties.
+Property: ${addr}, ${document.getElementById('pa_county').value}, ${document.getElementById('pa_propType').value}
+${document.getElementById('pa_beds').value}bd/${document.getElementById('pa_baths').value}ba/${document.getElementById('pa_sqft').value}sqft, built ${document.getElementById('pa_yearBuilt').value}
+Purchase: $${fmt(p.purchasePrice)}, ARV: $${fmt(p.arv)}, Rent: $${fmt(p.monthlyRent)}/mo, 2%: ${fmtPct(m.twoRule)}
+Date context: mid-2026
+Return ONLY valid JSON: {"market_summary":"","arv_analysis":{"investor_arv":${p.arv},"ai_estimated_arv":0,"confidence":"Medium","arv_verdict":"On Target","commentary":""},"rent_analysis":{"investor_rent":${p.monthlyRent},"market_rent_estimate":0,"rent_verdict":"At Market"},"comps":[{"address":"","sale_price":0,"beds":0,"baths":0,"sqft":0,"price_per_sqft":0,"days_on_market":0,"sold_months_ago":0,"similarity":"Good","adjustment":0,"notes":""}],"adjusted_value":0,"price_per_sqft_range":{"low":0,"high":0},"investment_flags":[{"type":"Positive","note":""}]}
+Generate 4 realistic comparable sales. JSON only.`;
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: prompt }]
-      })
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
     });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
-    }
-
+    if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||'HTTP '+res.status); }
     const data = await res.json();
-    const text = data.content[0].text;
-    const jsonStr = text.match(/\{[\s\S]*\}/)?.[0];
-    if (!jsonStr) throw new Error('No JSON found in response');
-    const result = JSON.parse(jsonStr);
-    renderComps(result);
-  } catch (e) {
-    showCompsError('Error: ' + e.message);
-  } finally {
-    document.getElementById('compsSpinner').style.display = 'none';
-    document.getElementById('compsBtnText').textContent = 'Run AI Comps';
+    const json = JSON.parse(data.content[0].text.match(/\{[\s\S]*\}/)?.[0]||'{}');
+    renderComps(json);
+  } catch(e) { showCompsErr('Error: '+e.message); }
+  finally {
+    document.getElementById('pa_compsSpinner').style.display='none';
+    document.getElementById('pa_compsBtnTxt').textContent='Run AI Comps';
   }
 }
 
 function renderComps(r) {
-  // ARV analysis
-  const verdictCls = {'Undervalued':'verdict-under','On Target':'verdict-target','Overvalued':'verdict-over'};
-  document.getElementById('arvAnalysis').innerHTML = `
-    <div style="margin-bottom:12px">${r.market_summary}</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-      <div class="metric" style="flex:1"><div class="metric-label">Investor ARV</div><div class="metric-value">$${fmt(r.arv_analysis.investor_arv)}</div></div>
-      <div class="metric" style="flex:1"><div class="metric-label">AI Estimated ARV</div><div class="metric-value">$${fmt(r.arv_analysis.ai_estimated_arv)}</div></div>
-      <div class="metric" style="flex:1"><div class="metric-label">Adjusted Value</div><div class="metric-value">$${fmt(r.adjusted_value)}</div></div>
+  const vc={'Undervalued':'verdict-under','On Target':'verdict-target','Overvalued':'verdict-over'};
+  document.getElementById('pa_arvAnalysis').innerHTML=`
+    <div style="font-size:0.83rem;margin-bottom:12px">${r.market_summary||''}</div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div class="metric" style="flex:1"><div class="metric-label">Your ARV</div><div class="metric-value">$${fmt(r.arv_analysis?.investor_arv)}</div></div>
+      <div class="metric" style="flex:1"><div class="metric-label">AI ARV</div><div class="metric-value">$${fmt(r.arv_analysis?.ai_estimated_arv)}</div></div>
+      <div class="metric" style="flex:1"><div class="metric-label">Adjusted</div><div class="metric-value">$${fmt(r.adjusted_value)}</div></div>
     </div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <span class="arv-verdict ${verdictCls[r.arv_analysis.arv_verdict]||'verdict-target'}">${r.arv_analysis.arv_verdict}</span>
-      <span style="font-size:0.78rem;color:var(--text2)">Confidence: ${r.arv_analysis.confidence}</span>
-      <span style="font-size:0.78rem;color:var(--text2)">$/sqft: $${r.price_per_sqft_range.low}–$${r.price_per_sqft_range.high}</span>
+    <span class="arv-verdict ${vc[r.arv_analysis?.arv_verdict]||'verdict-target'}">${r.arv_analysis?.arv_verdict}</span>
+    <span style="font-size:0.75rem;color:var(--text2);margin-left:10px">Confidence: ${r.arv_analysis?.confidence}</span>
+    <div style="margin-top:10px;font-size:0.82rem;color:var(--text2)">${r.arv_analysis?.commentary||''}</div>`;
+  const rd=r.rent_analysis||{}, diff=(rd.market_rent_estimate||0)-(rd.investor_rent||0);
+  document.getElementById('pa_rentAnalysis').innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <div class="metric" style="flex:1"><div class="metric-label">Your Rent</div><div class="metric-value">$${fmt(rd.investor_rent||0)}/mo</div></div>
+      <div class="metric" style="flex:1"><div class="metric-label">Market Est.</div><div class="metric-value">$${fmt(rd.market_rent_estimate||0)}/mo</div></div>
     </div>
-    <div style="margin-top:10px;font-size:0.83rem;color:var(--text2)">${r.arv_analysis.commentary}</div>`;
-
-  const rentDiff = r.rent_analysis.market_rent_estimate - r.rent_analysis.investor_rent;
-  const rentCls = r.rent_analysis.rent_verdict === 'Above Market' ? 'red' : r.rent_analysis.rent_verdict === 'Below Market' ? 'green' : 'yellow';
-  document.getElementById('rentAnalysis').innerHTML = `
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-      <div class="metric" style="flex:1"><div class="metric-label">Your Rent</div><div class="metric-value">$${fmt(r.rent_analysis.investor_rent)}/mo</div></div>
-      <div class="metric" style="flex:1"><div class="metric-label">Market Estimate</div><div class="metric-value">$${fmt(r.rent_analysis.market_rent_estimate)}/mo</div></div>
-    </div>
-    <span class="arv-verdict ${verdictCls[r.rent_analysis.rent_verdict]||'verdict-target'}">${r.rent_analysis.rent_verdict}</span>
-    <div style="margin-top:10px;font-size:0.85rem;color:var(--text2)">Delta: <span class="${rentCls}">${rentDiff >= 0 ? '+' : ''}$${fmt(rentDiff)}/mo</span></div>`;
-
-  // Comps
-  const simCls = {'Strong':'similarity-strong','Good':'similarity-good','Fair':'similarity-fair'};
-  document.getElementById('compsList').innerHTML = r.comps.map(c => `
+    <span class="arv-verdict ${vc[rd.rent_verdict]||'verdict-target'}">${rd.rent_verdict||''}</span>
+    <div style="margin-top:10px;font-size:0.83rem;color:var(--text2)">Delta: <span class="${diff<0?'red':'green'}">${diff>=0?'+':''}$${fmt(diff)}/mo</span></div>`;
+  const sc={'Strong':'green','Good':'yellow','Fair':''};
+  document.getElementById('pa_compsList').innerHTML=(r.comps||[]).map(c=>`
     <div class="comp-card">
-      <div class="comp-address">${c.address}</div>
-      <div class="comp-grid">
-        <div class="comp-item"><div class="comp-item-label">Sale Price</div><div class="comp-item-val">$${fmt(c.sale_price)}</div></div>
-        <div class="comp-item"><div class="comp-item-label">Bed/Bath/Sqft</div><div class="comp-item-val">${c.beds}bd / ${c.baths}ba / ${c.sqft}</div></div>
-        <div class="comp-item"><div class="comp-item-label">$/sqft</div><div class="comp-item-val">$${c.price_per_sqft}</div></div>
-        <div class="comp-item"><div class="comp-item-label">Sold</div><div class="comp-item-val">${c.sold_months_ago}mo ago (${c.days_on_market} DOM)</div></div>
+      <div class="comp-addr">${c.address}</div>
+      <div class="comp-grid4">
+        <div><div class="comp-item-label">Sale Price</div><div class="comp-item-val">$${fmt(c.sale_price)}</div></div>
+        <div><div class="comp-item-label">Bed/Bath/Sqft</div><div class="comp-item-val">${c.beds}/${c.baths}/${c.sqft}</div></div>
+        <div><div class="comp-item-label">$/sqft</div><div class="comp-item-val">$${c.price_per_sqft}</div></div>
+        <div><div class="comp-item-label">Sold</div><div class="comp-item-val">${c.sold_months_ago}mo (${c.days_on_market}d)</div></div>
       </div>
-      <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-        <span class="${simCls[c.similarity]||''}" style="font-size:0.78rem;font-weight:700">${c.similarity} match</span>
-        ${c.adjustment !== 0 ? `<span style="font-size:0.78rem;color:var(--text2)">Adj: ${c.adjustment > 0 ? '+' : ''}$${fmt(c.adjustment)}</span>` : ''}
-        <span style="font-size:0.78rem;color:var(--text3)">${c.notes}</span>
+      <div style="margin-top:8px;display:flex;gap:8px;font-size:0.76rem;align-items:center">
+        <span class="${sc[c.similarity]||''}" style="font-weight:700">${c.similarity}</span>
+        ${c.adjustment?`<span style="color:var(--text2)">adj: ${c.adjustment>0?'+':''}$${fmt(c.adjustment)}</span>`:''}
+        <span style="color:var(--text3)">${c.notes}</span>
       </div>
     </div>`).join('');
-
-  // Flags
-  const flagCls = {'Positive':'flag-pos','Caution':'flag-cau','Risk':'flag-risk'};
-  const flagIcon = {'Positive':'✓','Caution':'⚠','Risk':'✗'};
-  document.getElementById('compFlags').innerHTML = r.investment_flags.map(f =>
-    `<div class="flag ${flagCls[f.type]||'flag-cau'}"><span>${flagIcon[f.type]||'•'}</span><span>${f.note}</span></div>`
-  ).join('');
-
-  document.getElementById('compsResults').style.display = 'block';
+  const fc={'Positive':'flag-pos','Caution':'flag-cau','Risk':'flag-risk'};
+  const fi={'Positive':'✓','Caution':'⚠','Risk':'✗'};
+  document.getElementById('pa_compFlags').innerHTML=(r.investment_flags||[]).map(f=>
+    `<div class="flag ${fc[f.type]||'flag-cau'}"><span>${fi[f.type]||'•'}</span><span>${f.note}</span></div>`).join('');
+  document.getElementById('pa_compsResults').style.display='block';
 }
 
-function showCompsError(msg) {
-  document.getElementById('compsErrorMsg').textContent = msg;
-  document.getElementById('compsError').style.display = 'block';
+function showCompsErr(msg) {
+  document.getElementById('pa_compsErrMsg').textContent=msg;
+  document.getElementById('pa_compsError').style.display='block';
 }
 
-// ─────────────────── MANAGEMENT ───────────────────
+// ═══════════════════════════════════════════════════════
+// MANAGEMENT / TRANSACTIONS
+// ═══════════════════════════════════════════════════════
 function renderMgmt() {
-  // Load tenant
-  if (state.tenant) {
-    document.getElementById('tenantName').value = state.tenant.name || '';
-    document.getElementById('leaseStart').value = state.tenant.start || '';
-    document.getElementById('leaseEnd').value = state.tenant.end || '';
-    document.getElementById('tenantRent').value = state.tenant.rent || 1150;
-    document.getElementById('tenantStatus').value = state.tenant.status || 'current';
+  const txs = propertyTransactions;
+  renderTxTable(txs);
+  renderYtd(txs);
+}
+
+function renderTxTable(txs) {
+  const tbody = document.getElementById('pa_txBody');
+  const empty = document.getElementById('pa_txEmpty');
+  if (!txs.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=txs.map(t=>`<tr>
+    <td>${t.date}</td><td>${t.category}</td>
+    <td style="color:var(--text2)">${t.notes||'—'}</td>
+    <td style="font-weight:700;color:${t.type==='income'?'var(--green)':'var(--red)'}">
+      ${t.type==='income'?'+':'-'}$${fmt(t.amount)}
+    </td>
+    <td><button onclick="deleteTx('${t.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem">×</button></td>
+  </tr>`).join('');
+}
+
+function renderYtd(txs) {
+  const year = new Date().getFullYear();
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const byMo={};
+  (txs||[]).forEach(t=>{
+    const d=new Date(t.date); if(d.getFullYear()!==year) return;
+    const mo=d.getMonth(); if(!byMo[mo]) byMo[mo]={i:0,e:0};
+    if(t.type==='income') byMo[mo].i+=+t.amount; else byMo[mo].e+=+t.amount;
+  });
+  let totI=0,totE=0;
+  Object.values(byMo).forEach(m=>{totI+=m.i;totE+=m.e;});
+  const maxV=Math.max(...Object.values(byMo).flatMap(m=>[m.i,m.e]),1);
+  let html='';
+  for(let i=0;i<=new Date().getMonth();i++){
+    const mo=byMo[i]||{i:0,e:0};
+    if(!mo.i&&!mo.e) continue;
+    html+=`<div class="ytd-bar-wrap"><div class="ytd-bar-label">${months[i]}</div><div style="flex:1">
+      ${mo.i>0?`<div class="ytd-bar-track" style="margin-bottom:3px"><div class="ytd-bar-fill income" style="width:${mo.i/maxV*100}%">+$${fmt(mo.i)}</div></div>`:''}
+      ${mo.e>0?`<div class="ytd-bar-track"><div class="ytd-bar-fill expense" style="width:${mo.e/maxV*100}%">-$${fmt(mo.e)}</div></div>`:''}
+    </div></div>`;
   }
-  renderTxTable();
-  renderYtd();
+  if(!html) html=`<div style="text-align:center;padding:18px;color:var(--text3);font-size:0.8rem">No transactions this year.</div>`;
+  document.getElementById('pa_ytdChart').innerHTML=html;
+  document.getElementById('pa_ytdInc').textContent='$'+fmt(totI);
+  document.getElementById('pa_ytdExp').textContent='$'+fmt(totE);
+  const net=totI-totE;
+  const el=document.getElementById('pa_ytdNet');
+  el.textContent=(net>=0?'+':'-')+'$'+fmt(Math.abs(net));
+  el.className='metric-value '+(net>=0?'green':'red');
 }
 
-function saveTenant() {
-  state.tenant = {
-    name: document.getElementById('tenantName').value,
-    start: document.getElementById('leaseStart').value,
-    end: document.getElementById('leaseEnd').value,
-    rent: document.getElementById('tenantRent').value,
-    status: document.getElementById('tenantStatus').value,
-  };
-  localStorage.setItem('opa_tenant', JSON.stringify(state.tenant));
-  const btn = event.target;
-  btn.textContent = 'Saved!'; btn.style.background = 'var(--green)';
-  setTimeout(() => { btn.textContent = 'Save Tenant'; btn.style.background = ''; }, 1500);
-}
+function showAddTx() { document.getElementById('pa_addTxForm').style.display='block'; document.getElementById('pa_txDate').value=new Date().toISOString().split('T')[0]; }
+function hideAddTx() { document.getElementById('pa_addTxForm').style.display='none'; }
 
-function showAddTx() { document.getElementById('addTxForm').style.display = 'block'; const d = new Date(); document.getElementById('txDate').value = d.toISOString().split('T')[0]; }
-function hideAddTx() { document.getElementById('addTxForm').style.display = 'none'; }
-
-function addTx() {
+async function addTx() {
   const tx = {
-    id: Date.now(),
-    date: document.getElementById('txDate').value,
-    type: document.getElementById('txType').value,
-    category: document.getElementById('txCategory').value,
-    amount: parseFloat(document.getElementById('txAmount').value) || 0,
-    notes: document.getElementById('txNotes').value,
+    property_id: currentPropertyId, user_id: currentUser.id,
+    date: document.getElementById('pa_txDate').value,
+    type: document.getElementById('pa_txType').value,
+    category: document.getElementById('pa_txCat').value,
+    amount: parseFloat(document.getElementById('pa_txAmt').value)||0,
+    notes: document.getElementById('pa_txNotes').value,
   };
   if (!tx.date || !tx.amount) return;
-  state.transactions.unshift(tx);
-  localStorage.setItem('opa_tx', JSON.stringify(state.transactions));
+  const { data, error } = await getSB().from('transactions').insert(tx).select().single();
+  if (error) { toast('Error: '+error.message); return; }
+  propertyTransactions.unshift(data);
   hideAddTx();
-  document.getElementById('txAmount').value = '';
-  document.getElementById('txNotes').value = '';
-  renderTxTable();
-  renderYtd();
+  document.getElementById('pa_txAmt').value='';
+  document.getElementById('pa_txNotes').value='';
+  renderTxTable(propertyTransactions);
+  renderYtd(propertyTransactions);
 }
 
-function deleteTx(id) {
-  state.transactions = state.transactions.filter(t => t.id !== id);
-  localStorage.setItem('opa_tx', JSON.stringify(state.transactions));
-  renderTxTable();
-  renderYtd();
+async function deleteTx(id) {
+  await getSB().from('transactions').delete().eq('id', id);
+  propertyTransactions = propertyTransactions.filter(t => t.id !== id);
+  renderTxTable(propertyTransactions);
+  renderYtd(propertyTransactions);
 }
 
-function renderTxTable() {
-  const tbody = document.getElementById('txBody');
-  const empty = document.getElementById('txEmpty');
-  if (state.transactions.length === 0) {
-    tbody.innerHTML = ''; empty.style.display = 'block'; return;
-  }
-  empty.style.display = 'none';
-  tbody.innerHTML = state.transactions.map(t => `
-    <tr>
-      <td>${t.date}</td>
-      <td>${t.category}</td>
-      <td style="color:var(--text2)">${t.notes || '—'}</td>
-      <td class="tx-type-${t.type}" style="font-weight:700">${t.type === 'income' ? '+' : '-'}$${fmt(t.amount)}</td>
-      <td><button onclick="deleteTx(${t.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem">×</button></td>
-    </tr>`).join('');
+// ═══════════════════════════════════════════════════════
+// ADMIN PAGE
+// ═══════════════════════════════════════════════════════
+async function loadAdminPage() {
+  const sb = getSB();
+  const { data: users } = await sb.from('profiles').select('*').order('created_at');
+  const { data: props } = await sb.from('properties').select('*').order('created_at', { ascending: false });
+  const allUsers = users || [];
+  const allProps = props || [];
+
+  document.getElementById('adminStatUsers').textContent = allUsers.length;
+  document.getElementById('adminStatProps').textContent = allProps.length;
+  document.getElementById('adminStatOwned').textContent = allProps.filter(p=>p.status==='owned').length;
+  document.getElementById('adminStatAnalyzing').textContent = allProps.filter(p=>p.status==='analyzing').length;
+
+  document.getElementById('adminUserList').innerHTML = allUsers.length === 0
+    ? '<div style="color:var(--text3);font-size:0.85rem;padding:12px 0">No users yet.</div>'
+    : allUsers.map(u => `
+      <div class="user-row">
+        <div class="user-avatar" style="background:${avatarColor(u.email)}">${(u.email||'?')[0].toUpperCase()}</div>
+        <div class="user-info">
+          <div class="user-email">${u.email}</div>
+          <div class="user-meta">${u.full_name||''} · Joined ${new Date(u.created_at).toLocaleDateString()}</div>
+        </div>
+        <span class="status-pill ${u.role==='admin'?'s-under_contract':'s-analyzing'}">${u.role}</span>
+        <span style="font-size:0.78rem;color:var(--text3)">${allProps.filter(p=>p.user_id===u.id).length} prop</span>
+      </div>`).join('');
+
+  document.getElementById('adminPropList').innerHTML = allProps.length === 0
+    ? '<div style="text-align:center;padding:24px;color:var(--text3);font-size:0.85rem">No properties yet.</div>'
+    : `<table class="mgmt-table" style="font-size:0.82rem">
+      <thead><tr><th>Address</th><th>Owner</th><th>Status</th><th>Purchase</th><th>NOI/yr</th><th>Health</th></tr></thead>
+      <tbody>${allProps.map(p => {
+        const m = compute(propToInputs(p));
+        const owner = allUsers.find(u=>u.id===p.user_id);
+        return `<tr>
+          <td><strong>${p.address||'Untitled'}</strong><br><span style="color:var(--text3);font-size:0.72rem">${p.county}</span></td>
+          <td style="color:var(--text2)">${owner?.email||'—'}</td>
+          <td><span class="status-pill s-${p.status}">${(p.status||'').replace('_',' ')}</span></td>
+          <td>$${fmt(p.purchase_price)}</td>
+          <td class="${m.noiYearly>=0?'green':'red'}">$${fmt(m.noiYearly)}</td>
+          <td class="${m.healthScore>=70?'green':m.healthScore>=40?'yellow':'red'}">${Math.round(m.healthScore)}</td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
 }
 
-function renderYtd() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  // Aggregate by month
-  const byMonth = {};
-  state.transactions.forEach(t => {
-    const d = new Date(t.date);
-    if (d.getFullYear() !== year) return;
-    const mo = d.getMonth();
-    if (!byMonth[mo]) byMonth[mo] = { income: 0, expense: 0 };
-    if (t.type === 'income') byMonth[mo].income += t.amount;
-    else byMonth[mo].expense += t.amount;
-  });
-
-  let totalIncome = 0, totalExpense = 0;
-  Object.values(byMonth).forEach(m => { totalIncome += m.income; totalExpense += m.expense; });
-
-  const maxVal = Math.max(...Object.values(byMonth).flatMap(m => [m.income, m.expense]), 1);
-  const currentMonth = now.getMonth();
-
-  let html = '';
-  for (let i = 0; i <= currentMonth; i++) {
-    const mo = byMonth[i] || { income: 0, expense: 0 };
-    const incW = mo.income / maxVal * 100;
-    const expW = mo.expense / maxVal * 100;
-    if (mo.income === 0 && mo.expense === 0) continue;
-    html += `<div class="ytd-bar-wrap">
-      <div class="ytd-bar-label">${months[i]}</div>
-      <div style="flex:1">
-        ${mo.income > 0 ? `<div class="ytd-bar-track" style="margin-bottom:3px"><div class="ytd-bar-fill income" style="width:${incW}%">+$${fmt(mo.income)}</div></div>` : ''}
-        ${mo.expense > 0 ? `<div class="ytd-bar-track"><div class="ytd-bar-fill expense" style="width:${expW}%">-$${fmt(mo.expense)}</div></div>` : ''}
-      </div>
-    </div>`;
-  }
-  if (!html) html = `<div style="text-align:center;padding:20px;color:var(--text3);font-size:0.82rem">No transactions this year yet.</div>`;
-
-  document.getElementById('ytdChart').innerHTML = html;
-  document.getElementById('ytdIncome').textContent = '$' + fmt(totalIncome);
-  document.getElementById('ytdExpenses').textContent = '$' + fmt(totalExpense);
-  const net = totalIncome - totalExpense;
-  const netEl = document.getElementById('ytdNet');
-  netEl.textContent = (net >= 0 ? '+' : '-') + '$' + fmt(Math.abs(net));
-  netEl.className = 'metric-value ' + (net >= 0 ? 'green' : 'red');
+async function inviteUser() {
+  const email = document.getElementById('inviteEmail').value.trim();
+  const svcKey = document.getElementById('inviteServiceKey').value.trim();
+  if (!email || !svcKey) { setInviteMsg('Enter both email and service role key.', true); return; }
+  document.getElementById('inviteSpinner').style.display='inline-block';
+  const cfg = getConfig();
+  try {
+    const res = await fetch(`${cfg.url}/auth/v1/invite`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'apikey': svcKey, 'Authorization':'Bearer '+svcKey },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.msg || data.message || 'Invite failed');
+    setInviteMsg(`Invite sent to ${email}`, false);
+    document.getElementById('inviteEmail').value='';
+    document.getElementById('inviteServiceKey').value='';
+    loadAdminPage();
+  } catch(e) { setInviteMsg(e.message, true); }
+  finally { document.getElementById('inviteSpinner').style.display='none'; }
 }
 
-// helper
-function id(s) { return document.getElementById(s); }
+function setInviteMsg(msg, err) {
+  const el=document.getElementById('inviteMsg');
+  el.textContent=msg; el.className='auth-msg '+(err?'err':'ok');
+}
 
-// ─────────────────── INIT ───────────────────
-calc();
+function avatarColor(email='') {
+  const colors=['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#6366f1'];
+  let hash=0; for(const c of email) hash=(hash<<5)-hash+c.charCodeAt(0);
+  return colors[Math.abs(hash)%colors.length];
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function fmt(n) { return Math.round(+n||0).toLocaleString(); }
+function fmtD(n) { return '$'+fmt(Math.abs(+n||0)); }
+function fmtPct(n) { return (+n||0).toFixed(1)+'%'; }
+function fmtShort(n) { n=+n||0; if(Math.abs(n)>=1000000) return '$'+(n/1000000).toFixed(1)+'M'; if(Math.abs(n)>=1000) return '$'+(n/1000).toFixed(0)+'K'; return '$'+Math.round(n); }
+function colorClass(val, passT, warnT, invert=false) {
+  if (!invert) return val>=passT?'green':val>=warnT?'yellow':'red';
+  return val<=passT?'green':val<=warnT?'yellow':'red';
+}
+function toast(msg) {
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+bootApp();
 </script>
 </body>
 </html>
