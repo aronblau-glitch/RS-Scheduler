@@ -490,13 +490,16 @@ async function navToWeek(wk){
 function setAdminTab(tab){ adminTab=tab; renderAdminView(); }
 function renderAdminTab(){
   const wk=getActiveWeekKey(), el=document.getElementById('adminTabContent');
+  const useSb=Object.keys(sbCache).length>0;
   if(adminTab==='overview'){
     let html='';
     PROVIDERS.forEach((prov,pIdx)=>{
       const colIdx=pIdx+3; let total=0,checked=0,absent=0,nc=0; const sessions=[];
       RAW.forEach(row=>{
         const student=(row[colIdx]||'').trim();if(!student||student==='x'||student.startsWith('Group'))return;
-        const done=isChecked(wk,prov,row[0],row[1],student),ab=isAbsent(wk,prov,row[0],row[1],student),nco=isNc(wk,prov,row[0],row[1],student);
+        const done=useSb?sbDone(prov,row[0],row[1],student):isChecked(wk,prov,row[0],row[1],student);
+        const ab=useSb?sbAbsent(prov,row[0],row[1],student):isAbsent(wk,prov,row[0],row[1],student);
+        const nco=useSb?sbNc(prov,row[0],row[1],student):isNc(wk,prov,row[0],row[1],student);
         sessions.push({day:row[0],time:row[1],subject:row[2],student,done,absent:ab,nc:nco});
         total++;if(done)checked++;if(ab)absent++;if(nco)nc++;
       });
@@ -632,7 +635,7 @@ async function fetchFromSupabase(weekKey){
     if(!res.ok) return false;
     const data=await res.json();
     sbCache={};
-    data.forEach(r=>{ sbCache[r.provider+'||'+r.day+'||'+r.time+'||'+r.student]=r.status; });
+    data.forEach(r=>{ sbCache[r.provider+'||'+r.day+'||'+parseFloat(r.time)+'||'+r.student]=r.status; });
     return true;
   }catch(e){ return false; }
 }
