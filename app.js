@@ -770,8 +770,24 @@ async function diagnoseSb(){
 
   out.textContent += '\nsbCache size after last fetch: ' + Object.keys(sbCache).length + ' entries\n';
   if(Object.keys(sbCache).length > 0){
-    const sample = Object.keys(sbCache)[0];
-    out.textContent += 'Sample cache key: "' + sample + '" → ' + sbCache[sample] + '\n';
+    // Show status distribution
+    const counts = {};
+    Object.values(sbCache).forEach(v=>{ counts[v]=(counts[v]||0)+1; });
+    out.textContent += 'Status breakdown: ' + JSON.stringify(counts) + '\n';
+    // Show first 3 cache keys
+    const keys = Object.keys(sbCache).slice(0,3);
+    keys.forEach(k => { out.textContent += 'Cache key: "' + k + '" → ' + sbCache[k] + '\n'; });
+    // Show what the lookup would generate for first 3 keys
+    out.textContent += '\nLookup test (first 3 RAW rows that have a student for provider 0):\n';
+    const prov0 = PROVIDERS[0]; const col0 = 3;
+    let tested = 0;
+    for(let i=0; i<RAW.length && tested<3; i++){
+      const st = (RAW[i][col0]||'').trim();
+      if(!st || st==='x' || st.startsWith('Group')) continue;
+      const lookupKey = prov0+'||'+RAW[i][0]+'||'+parseFloat(RAW[i][1]).toFixed(10)+'||'+st;
+      out.textContent += 'Lookup: "' + lookupKey + '" → ' + (sbCache[lookupKey]||'NOT FOUND') + '\n';
+      tested++;
+    }
   }
   out.textContent += '\nDiagnostics complete.';
 }
