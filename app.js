@@ -637,7 +637,7 @@ async function fetchFromSupabase(weekKey){
     if(!res.ok) return false;
     const data=await res.json();
     sbCache={};
-    data.forEach(r=>{ sbCache[r.provider+'||'+r.day+'||'+parseFloat(r.time)+'||'+r.student]=r.status; });
+    data.forEach(r=>{ sbCache[r.provider+'||'+r.day+'||'+parseFloat(r.time).toFixed(10)+'||'+r.student]=r.status; });
     return true;
   }catch(e){ return false; }
 }
@@ -666,9 +666,9 @@ async function fetchAvailableWeeks(){
 }
 
 // Status helpers using sbCache (for admin view)
-function sbDone(p,d,t,s){ return sbCache[p+'||'+d+'||'+t+'||'+s]==='seen'; }
-function sbAbsent(p,d,t,s){ return sbCache[p+'||'+d+'||'+t+'||'+s]==='absent'; }
-function sbNc(p,d,t,s){ return sbCache[p+'||'+d+'||'+t+'||'+s]==='nc'; }
+function sbDone(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='seen'; }
+function sbAbsent(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='absent'; }
+function sbNc(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='nc'; }
 
 async function pushProviderRecord(provider, day, time, student, status){
   const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
