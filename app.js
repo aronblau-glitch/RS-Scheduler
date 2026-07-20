@@ -545,7 +545,9 @@ function renderAdminTab(){
       +'<button class="btn-sync" onclick="saveSupabaseCfg()">Save Config</button>'
       +'<button class="btn-sync" style="background:linear-gradient(135deg,#2b6cb0,#3182ce);" onclick="doSupabaseSync()">Push to Supabase</button>'
       +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);margin-top:6px;" onclick="refreshAdminData()">Refresh Admin View</button>'
+      +'<button class="btn-sync" style="background:linear-gradient(135deg,#744210,#c05621);margin-top:6px;" onclick="diagnoseSb()">&#128270; Diagnose Connection</button>'
       +'<div class="sync-status" id="syncStatus"></div>'
+      +'<pre id="diagOut" style="background:#1a2332;color:#a8f0c0;padding:12px;border-radius:8px;font-size:0.75rem;margin-top:10px;white-space:pre-wrap;word-break:break-all;display:none;"></pre>'
       +'</div>'
       +'<div class="config-panel"><h3>Setup Instructions</h3>'
       +'<p>1. Create a free project at <strong>supabase.com</strong><br>'
@@ -713,6 +715,65 @@ async function refreshAdminData(){
   } else {
     if(el){el.textContent='Could not fetch from Supabase. Check your config.';el.className='sync-status err';}
   }
+}
+
+async function diagnoseSb(){
+  const out = document.getElementById('diagOut');
+  if(!out) return;
+  out.style.display='block';
+  out.textContent = 'Running diagnostics...\n';
+  const cfg = getSupabaseCfg();
+  const wk = getWeekKey();
+  out.textContent += 'Week key: ' + wk + '\n';
+  out.textContent += 'Supabase URL: ' + (cfg.url || 'NOT SET') + '\n';
+  out.textContent += 'Anon key set: ' + (cfg.key ? 'YES (' + cfg.key.substring(0,20) + '...)' : 'NO') + '\n';
+  out.textContent += 'Table: ' + (cfg.table||'checkoffs') + '\n\n';
+
+  if(!cfg.url || !cfg.key){ out.textContent += 'ERROR: No Supabase config. Cannot connect.\n'; return; }
+
+  // Test 1: fetch all rows (no week filter) to see if ANY data exists
+  try{
+    out.textContent += 'Test 1: Fetching ALL rows from table (no filter)...\n';
+    const r1 = await fetch(cfg.url+'/rest/v1/'+(cfg.table||'checkoffs')+'?limit=5', {
+      headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Accept':'application/json'}
+    });
+    out.textContent += 'HTTP status: ' + r1.status + ' ' + r1.statusText + '\n';
+    if(r1.ok){
+      const d1 = await r1.json();
+      out.textContent += 'Rows returned (up to 5): ' + d1.length + '\n';
+      if(d1.length > 0){
+        out.textContent += 'Sample row: ' + JSON.stringify(d1[0]) + '\n';
+        out.textContent += 'Sample week_key in DB: "' + d1[0].week_key + '"\n';
+        out.textContent += 'Current week_key:      "' + wk + '"\n';
+        out.textContent += 'Keys match: ' + (d1[0].week_key === wk ? 'YES' : 'NO — MISMATCH!') + '\n';
+      } else {
+        out.textContent += 'Table is EMPTY — providers have not pushed any data yet.\n';
+      }
+    } else {
+      const err = await r1.text();
+      out.textContent += 'ERROR response: ' + err + '\n';
+    }
+  }catch(e){ out.textContent += 'Network error: ' + e.message + '\n'; }
+
+  // Test 2: fetch with current week filter
+  try{
+    out.textContent += '\nTest 2: Fetching rows for current week...\n';
+    const r2 = await fetch(cfg.url+'/rest/v1/'+(cfg.table||'checkoffs')+'?week_key=eq.'+encodeURIComponent(wk)+'&limit=5', {
+      headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Accept':'application/json'}
+    });
+    if(r2.ok){
+      const d2 = await r2.json();
+      out.textContent += 'Rows for this week: ' + d2.length + '\n';
+      if(d2.length > 0) out.textContent += 'Sample: ' + JSON.stringify(d2[0]) + '\n';
+    }
+  }catch(e){ out.textContent += 'Error: ' + e.message + '\n'; }
+
+  out.textContent += '\nsbCache size after last fetch: ' + Object.keys(sbCache).length + ' entries\n';
+  if(Object.keys(sbCache).length > 0){
+    const sample = Object.keys(sbCache)[0];
+    out.textContent += 'Sample cache key: "' + sample + '" → ' + sbCache[sample] + '\n';
+  }
+  out.textContent += '\nDiagnostics complete.';
 }
 
 /* --- OFFICE VIEW --- */
