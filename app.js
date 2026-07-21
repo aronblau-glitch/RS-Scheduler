@@ -396,7 +396,8 @@ function updateSbStatusBadge(){
   const el = document.getElementById('sbStatusBadge');
   if(!el) return;
   const count = Object.keys(sbCache).length;
-  if(sbLoadStatus===true) el.innerHTML='&#128994; Supabase: '+count+' record'+(count!==1?'s':'')+' loaded &nbsp;<button onclick="adminRefreshNow()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;border-radius:5px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">&#8635; Refresh</button>';
+  const cacheMatchesView = sbCacheWeek === getActiveWeekKey();
+  if(sbLoadStatus===true) el.innerHTML='&#128994; Supabase: '+count+' record'+(count!==1?'s':'')+' loaded'+(cacheMatchesView?'':' <span style="color:#fbd38d;">(wrong week — refreshing)</span>')+' &nbsp;<button onclick="adminRefreshNow()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;border-radius:5px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">&#8635; Refresh</button>';
   else if(sbLoadStatus===false) el.innerHTML='&#128308; Supabase: could not load &nbsp;<button onclick="adminRefreshNow()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;border-radius:5px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">&#8635; Retry</button>';
   else el.innerHTML='&#9898; Supabase: checking...';
 }
@@ -490,7 +491,7 @@ async function navToWeek(wk){
 function setAdminTab(tab){ adminTab=tab; renderAdminView(); }
 function renderAdminTab(){
   const wk=getActiveWeekKey(), el=document.getElementById('adminTabContent');
-  const useSb=Object.keys(sbCache).length>0;
+  const useSb=Object.keys(sbCache).length>0 && sbCacheWeek===wk;
   if(adminTab==='overview'){
     let html='';
     PROVIDERS.forEach((prov,pIdx)=>{
@@ -565,7 +566,7 @@ function adminSearch(){
   const query=(document.getElementById('adminStudentSearch').value||'').trim().toLowerCase();
   const results=document.getElementById('adminSearchResults'),wk=getWeekKey();
   if(query.length<2){results.innerHTML='<div class="no-data">Type at least 2 characters.</div>';return;}
-  const useSb=Object.keys(sbCache).length>0;
+  const useSb=Object.keys(sbCache).length>0 && sbCacheWeek===wk;
   const found=[];
   RAW.forEach(row=>{
     for(let c=3;c<3+PROVIDERS.length;c++){
@@ -603,6 +604,7 @@ function adminSearch(){
 
 /* --- SUPABASE --- */
 let sbCache = {}; // { "provider||day||time||student": "seen|absent|nc|pending" }
+let sbCacheWeek = null; // which week_key sbCache was last loaded for
 
 // ── HARDCODED SUPABASE CONFIG (fallback if not set via UI) ──────────────
 // To update: log in as Admin → Supabase Sync tab → paste new values → Save Config
@@ -637,6 +639,7 @@ async function fetchFromSupabase(weekKey){
     if(!res.ok) return false;
     const data=await res.json();
     sbCache={};
+    sbCacheWeek = wk;
     data.forEach(r=>{ sbCache[r.provider+'||'+r.day+'||'+parseFloat(r.time).toFixed(10)+'||'+r.student]=r.status; });
     return true;
   }catch(e){ return false; }
@@ -829,7 +832,7 @@ function officeSearch(){
   }
 
   var wk = getWeekKey();
-  var useSb = Object.keys(sbCache).length > 0;
+  var useSb = Object.keys(sbCache).length > 0 && sbCacheWeek === getWeekKey();
 
   // Find all matching students
   var studentMap = {};
@@ -919,7 +922,7 @@ function downloadStudentReport(){
   if(!officeCurrentStudent) return;
   var name = officeCurrentStudent;
   var wk = getWeekKey();
-  var useSb = Object.keys(sbCache).length > 0;
+  var useSb = Object.keys(sbCache).length > 0 && sbCacheWeek === getWeekKey();
 
   // Gather all sessions for this student
   var sessions = [];
