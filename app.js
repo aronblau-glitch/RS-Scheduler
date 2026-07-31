@@ -811,7 +811,7 @@ function renderOfficeView(){
   html += '<div class="week-reset-badge">Week of ' + getWeekRange() + '</div></div>';
   html += '<div class="office-search-bar">';
   html += '<input type="text" id="officeSearchInput" placeholder="&#128269; Type student name to search..." oninput="officeSearch()" autocomplete="off">';
-  html += '<button class="btn-download" id="btnDownloadDocx" onclick="downloadStudentReport()" disabled>&#128196; Download Word</button>';
+  html += '<button class="btn-download" id="btnDownloadDocx" onclick="downloadStudentExcel()" disabled>&#128202; Download Excel</button>';
   html += '</div>';
   html += '<div id="officeResults"><div class="no-data">Start typing a student name above.</div></div>';
   container.innerHTML = html;
@@ -989,6 +989,69 @@ function downloadStudentReport(){
   var a = document.createElement('a');
   a.href = url;
   a.download = name.replace(/[^a-zA-Z0-9]/g,'_') + '_Schedule_Report.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function downloadStudentExcel(){
+  if(!officeCurrentStudent) return;
+  var name = officeCurrentStudent;
+  var wk = getWeekKey();
+  var useSb = Object.keys(sbCache).length > 0 && sbCacheWeek === getWeekKey();
+
+  var sessions = [];
+  RAW.forEach(function(row){
+    for(var c = 3; c < 3 + PROVIDERS.length; c++){
+      var student = (row[c] || '').trim();
+      if(student === name){
+        var prov = PROVIDERS[c-3];
+        sessions.push({provider:prov, day:row[0], time:row[1]});
+        break;
+      }
+    }
+  });
+
+  // Build XML Spreadsheet (opens natively in Excel)
+  var xml = '<?xml version="1.0" encoding="UTF-8"?>';
+  xml += '<?mso-application progid="Excel.Sheet"?>';
+  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"';
+  xml += ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+  xml += '<Styles>';
+  xml += '<Style ss:ID="header"><Font ss:Bold="1" ss:Size="11"/><Interior ss:Color="#1a2332" ss:Pattern="Solid"/><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="11"/></Style>';
+  xml += '<Style ss:ID="title"><Font ss:Bold="1" ss:Size="14" ss:Color="#1a2332"/></Style>';
+  xml += '<Style ss:ID="bold"><Font ss:Bold="1"/></Style>';
+  xml += '<Style ss:ID="even"><Interior ss:Color="#f7fafc" ss:Pattern="Solid"/></Style>';
+  xml += '</Styles>';
+  xml += '<Worksheet ss:Name="Schedule">';
+  xml += '<Table ss:DefaultColumnWidth="120">';
+  // Title row
+  xml += '<Row><Cell ss:StyleID="title" ss:MergeAcross="2"><Data ss:Type="String">Student Schedule — ' + name + '</Data></Cell></Row>';
+  xml += '<Row><Cell ss:MergeAcross="2"><Data ss:Type="String">Generated: ' + new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) + '</Data></Cell></Row>';
+  xml += '<Row/>';
+  // Header row
+  xml += '<Row>';
+  xml += '<Cell ss:StyleID="header"><Data ss:Type="String">Day</Data></Cell>';
+  xml += '<Cell ss:StyleID="header"><Data ss:Type="String">Time</Data></Cell>';
+  xml += '<Cell ss:StyleID="header"><Data ss:Type="String">Provider</Data></Cell>';
+  xml += '</Row>';
+  // Data rows
+  sessions.forEach(function(s, i){
+    var style = i % 2 === 1 ? ' ss:StyleID="even"' : '';
+    xml += '<Row>';
+    xml += '<Cell' + style + '><Data ss:Type="String">' + s.day + '</Data></Cell>';
+    xml += '<Cell' + style + '><Data ss:Type="String">' + timeStr(s.time) + '</Data></Cell>';
+    xml += '<Cell' + style + '><Data ss:Type="String">' + s.provider + '</Data></Cell>';
+    xml += '</Row>';
+  });
+  xml += '</Table></Worksheet></Workbook>';
+
+  var blob = new Blob([xml], {type:'application/vnd.ms-excel'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = name.replace(/[^a-zA-Z0-9]/g,'_') + '_Schedule.xls';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
