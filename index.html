@@ -1329,60 +1329,35 @@ function downloadStudentReport(){
 function downloadStudentExcel(){
   if(!officeCurrentStudent) return;
   var name = officeCurrentStudent;
-  var wk = getWeekKey();
-  var useSb = Object.keys(sbCache).length > 0 && sbCacheWeek === getWeekKey();
 
   var sessions = [];
   RAW.forEach(function(row){
     for(var c = 3; c < 3 + PROVIDERS.length; c++){
       var student = (row[c] || '').trim();
       if(student === name){
-        var prov = PROVIDERS[c-3];
-        sessions.push({provider:prov, day:row[0], time:row[1]});
+        sessions.push({provider:PROVIDERS[c-3], day:row[0], time:row[1]});
         break;
       }
     }
   });
 
-  // Build XML Spreadsheet (opens natively in Excel)
-  var xml = '<?xml version="1.0" encoding="UTF-8"?>';
-  xml += '<?mso-application progid="Excel.Sheet"?>';
-  xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"';
-  xml += ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
-  xml += '<Styles>';
-  xml += '<Style ss:ID="header"><Font ss:Bold="1" ss:Size="11"/><Interior ss:Color="#1a2332" ss:Pattern="Solid"/><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="11"/></Style>';
-  xml += '<Style ss:ID="title"><Font ss:Bold="1" ss:Size="14" ss:Color="#1a2332"/></Style>';
-  xml += '<Style ss:ID="bold"><Font ss:Bold="1"/></Style>';
-  xml += '<Style ss:ID="even"><Interior ss:Color="#f7fafc" ss:Pattern="Solid"/></Style>';
-  xml += '</Styles>';
-  xml += '<Worksheet ss:Name="Schedule">';
-  xml += '<Table ss:DefaultColumnWidth="120">';
-  // Title row
-  xml += '<Row><Cell ss:StyleID="title" ss:MergeAcross="2"><Data ss:Type="String">Student Schedule — ' + name + '</Data></Cell></Row>';
-  xml += '<Row><Cell ss:MergeAcross="2"><Data ss:Type="String">Generated: ' + new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) + '</Data></Cell></Row>';
-  xml += '<Row/>';
-  // Header row
-  xml += '<Row>';
-  xml += '<Cell ss:StyleID="header"><Data ss:Type="String">Day</Data></Cell>';
-  xml += '<Cell ss:StyleID="header"><Data ss:Type="String">Time</Data></Cell>';
-  xml += '<Cell ss:StyleID="header"><Data ss:Type="String">Provider</Data></Cell>';
-  xml += '</Row>';
-  // Data rows
-  sessions.forEach(function(s, i){
-    var style = i % 2 === 1 ? ' ss:StyleID="even"' : '';
-    xml += '<Row>';
-    xml += '<Cell' + style + '><Data ss:Type="String">' + s.day + '</Data></Cell>';
-    xml += '<Cell' + style + '><Data ss:Type="String">' + timeStr(s.time) + '</Data></Cell>';
-    xml += '<Cell' + style + '><Data ss:Type="String">' + s.provider + '</Data></Cell>';
-    xml += '</Row>';
-  });
-  xml += '</Table></Worksheet></Workbook>';
+  function csvCell(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }
 
-  var blob = new Blob([xml], {type:'application/vnd.ms-excel'});
+  var lines = [];
+  lines.push(csvCell('Student Schedule — ' + name));
+  lines.push(csvCell('Generated: ' + new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})));
+  lines.push('');
+  lines.push([csvCell('Day'), csvCell('Time'), csvCell('Provider')].join(','));
+  sessions.forEach(function(s){
+    lines.push([csvCell(s.day), csvCell(timeStr(s.time)), csvCell(s.provider)].join(','));
+  });
+
+  var csv = '﻿' + lines.join('\r\n'); // BOM for Excel UTF-8
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = name.replace(/[^a-zA-Z0-9]/g,'_') + '_Schedule.xls';
+  a.download = name.replace(/[^a-zA-Z0-9]/g,'_') + '_Schedule.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
