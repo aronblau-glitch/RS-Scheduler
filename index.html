@@ -623,7 +623,113 @@ function splitCellStudents(cell){
   return cell.split('/').map(s=>s.trim()).filter(s=>s&&s!=='x');
 }
 
-function getStudentContact(name){if(STUDENT_CONTACTS[name])return STUDENT_CONTACTS[name];const nl=name.toLowerCase().replace(/\s+/g,' ').trim();for(const k in STUDENT_CONTACTS){if(k.toLowerCase().replace(/\s+/g,' ').trim()===nl)return STUDENT_CONTACTS[k];}const nw=nl.split(' ').filter(Boolean);for(const k in STUDENT_CONTACTS){const kw=k.toLowerCase().replace(/\s+/g,' ').trim().split(' ').filter(Boolean);const m=nw.filter(w=>kw.some(kk=>kk===w));if(m.length>=2&&m.length>=Math.min(2,kw.length))return STUDENT_CONTACTS[k];}return null;}
+// Normalize a single word to a canonical form for fuzzy name matching
+function _normWord(w){
+  w=w.toLowerCase().replace(/[,.']/g,'').trim();
+  // Common Hebrew/Yiddish name variant → canonical
+  const MAP={
+    'avraham':'avrohom','abraham':'avrohom','avrohom':'avrohom',
+    'aharon':'aron','aaron':'aron','aron':'aron',
+    'moishe':'moshe','moshe':'moshe',
+    'naftuli':'naftula','naftula':'naftula','naftuli hersk':'naftula',
+    'yeshoshua':'yehoshua','yehoshua':'yehoshua',
+    'nechemiah':'nechemia','nechemia':'nechemia',
+    'bentzion':'benzion','benzion':'benzion',
+    'mordche':'mordechai','mordechai':'mordechai',
+    'shloimy':'shlomo','shloime':'shlomo','shlomy':'shlomo','solomon':'shlomo','shlomo':'shlomo',
+    'shloimy':'shlomo',
+    'yizchok':'yitzchok','yitzhok':'yitzchok','yitzchok':'yitzchok',
+    'hirsch':'hersh','hersh':'hersh','hersh meir':'hersh','hirsch meir':'hersh',
+    'smiel':'shmiel','shmuel':'shmuel','shmiel':'shmiel',
+    'yiddi':'yidel','yidel':'yidel',
+    'simcha binim':'simcha','simcha bimin':'simcha',
+    'elimelach':'elimelech','elimelech':'elimelech',
+    'yehuda':'yehudah','yehudah':'yehudah',
+    'boruch':'baruch','baruch':'baruch',
+    'avrohom simcha':'avrohom',
+    'levi yitzchak':'levi','levi yitzchok':'levi',
+    'yanky':'yanky','yanki':'yanky',
+    'favi':'zev','kuperman':'kuperman',  // Favi = Zev (nickname)
+    'prero':'prero',
+    'herskowitz':'herskovic','hershkowitz':'herskovic',
+    'hersk':'naftula',
+    'leiby':'leiby','kramanier':'kraminar','kraminar':'kraminar',
+    'steiner':'steiner','aron':'aron',
+    'stein levi yitzchok':'stein',
+    'spitzer moshe zev':'spitzer',
+    'walk':'wallk','wallk':'wallk',
+    'weissman':'weissman','weiss':'weiss',
+    'reichberg':'reichberg','yizchok':'yitzchok',
+    'sekula':'sekula','hirsch meir':'hersh',
+    'twersky':'twerski','twerski':'twerski',
+    'rosinger':'rosinger','mordechai':'mordechai','mordche':'mordechai',
+    'silberman':'silberman','moishe':'moshe',
+    'sofer':'soifer','soifer':'soifer',
+    'spitz':'spitz',
+    'pollack':'pollak','pollak':'pollak',
+    'hershy':'hershel','hershel':'hershel',
+    'shia':'joshua','joshua':'joshua',  // Shia = Yehoshua = Joshua
+    'bimin':'binim','binim':'binim',    // Simcha Bimin/Binim
+    'naftuli hersk':'naftula','hersk':'naftula',
+    'yosef':'joseph','joseph':'joseph', // Weissman Yosef / Joseph
+    'yitzchok':'yitzchok','yitzchak':'yitzchok',
+    'yehudah':'yehuda','yehuda':'yehuda',
+    'efraim':'efraim','ephraim':'efraim',
+    'chaim':'chaim','haim':'chaim',
+    'zev':'zev','zvi':'zev',           // Fischer Zev / Fisher Zev
+    'fisher':'fischer','fischer':'fischer', // last name variant
+    'steiner':'steiner',
+    'smiel':'shmiel',
+    'brauner':'brauner','benzion':'benzion',
+    'goldhirsch':'goldhirsch',
+    'gluck':'gluck',
+    'gestetner':'gestetner','shloime':'shlomo',
+    'kanner':'kanner','yehudah':'yehudah',
+    'lowenbraun':'lowenbraun','eli':'eli',
+    'shimmy':'shimon','shimon':'shimon',  // Shimmy = Shimon
+    'yochonon':'yochonan','yochonan':'yochonan',
+  };
+  return MAP[w]||w;
+}
+function _normName(name){
+  // Normalize full name: strip commas/punctuation, lower, map each word
+  return name.toLowerCase().replace(/[,.']/g,' ').replace(/\s+/g,' ').trim()
+    .split(' ').filter(Boolean).map(_normWord).join(' ');
+}
+function getStudentContact(name){
+  if(STUDENT_CONTACTS[name]) return STUDENT_CONTACTS[name];
+  // 1. Case-insensitive exact
+  const nl=name.toLowerCase().replace(/[,.']/g,' ').replace(/\s+/g,' ').trim();
+  for(const k in STUDENT_CONTACTS){
+    if(k.toLowerCase().replace(/[,.']/g,' ').replace(/\s+/g,' ').trim()===nl) return STUDENT_CONTACTS[k];
+  }
+  // 2. Normalized name exact
+  const nn=_normName(name);
+  for(const k in STUDENT_CONTACTS){
+    if(_normName(k)===nn) return STUDENT_CONTACTS[k];
+  }
+  // 3. Word overlap on normalized words (last name + at least one first name word)
+  const nw=nn.split(' ').filter(Boolean);
+  let best=null, bestScore=0;
+  for(const k in STUDENT_CONTACTS){
+    const kw=_normName(k).split(' ').filter(Boolean);
+    const overlap=nw.filter(w=>kw.includes(w));
+    // Require last name match (first word) + at least one other word
+    if(overlap.length>=2 && (nw[0]===kw[0]||overlap.includes(nw[0]))){
+      if(overlap.length>bestScore){bestScore=overlap.length;best=STUDENT_CONTACTS[k];}
+    }
+  }
+  if(best) return best;
+  // 4. Loose: just last name + any one word match
+  for(const k in STUDENT_CONTACTS){
+    const kw=_normName(k).split(' ').filter(Boolean);
+    if(nw[0]&&kw[0]&&nw[0]===kw[0]){
+      const overlap=nw.filter(w=>kw.includes(w));
+      if(overlap.length>=1&&overlap.length>bestScore){bestScore=overlap.length;best=STUDENT_CONTACTS[k];}
+    }
+  }
+  return best||null;
+}
 
 let currentUser = null;
 let adminTab = 'overview';
