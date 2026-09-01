@@ -321,29 +321,52 @@ function showProviderView(provider,tab){
   const wk=getWeekKey(), pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
   container.style.display='block';
   document.getElementById('adminView').style.display='none';
-  const byDay={};DAYS_ORDER.forEach(d=>byDay[d]=[]);
-  let total=0,seen=0,absent=0;
-  const mandateSet=new Set((PROVIDER_MANDATES[provider]||[]).map(s=>s.toLowerCase().trim()));
-  function inMandate(name){
-    if(!mandateSet.size) return true; // no mandate = show all
-    const nl=name.toLowerCase().trim();
-    if(mandateSet.has(nl)) return true;
-    // fuzzy: check if all last-name words match
-    for(const m of mandateSet){ const mw=m.split(' '); const nw=nl.split(' '); if(mw.every(w=>nw.some(n=>n===w||n.startsWith(w)||w.startsWith(n)))) return true; }
-    return false;
-  }
-  RAW.forEach(row=>{
-    const student=(row[colIdx]||'').trim();
-    if(!student||student==='x'||student.startsWith('Group')) return;
-    if(!inMandate(student)) return; // filter out non-mandated students
-    const day=row[0],time=row[1];
-    const done=isChecked(wk,provider,day,time,student);
-    const ab=isAbsent(wk,provider,day,time,student);
-    const nc=isNc(wk,provider,day,time,student);
-    byDay[day].push({time,subject:row[2],student,done,absent:ab,nc});
-    total++;if(done)seen++;if(ab)absent++;
+
+  // Build schedule lookup from Timeslot Schedule: name→[{day,time,subject}]
+  const schedLookup={};
+  RAW.forEach(function(row){
+    var s=(row[colIdx]||'').trim();
+    if(!s||s==='x'||s.startsWith('Group')) return;
+    if(!schedLookup[s]) schedLookup[s]=[];
+    schedLookup[s].push({day:row[0],time:row[1],subject:row[2]});
   });
-  let html='<div class="week-banner"><div><div class="week-label">Week of '+getWeekRange()+'</div>'
+  // Fuzzy match: find schedule key for a mandate name
+  function findScheduleKey(name){
+    if(schedLookup[name]) return name;
+    var nl=name.toLowerCase().trim();
+    for(var k in schedLookup){ if(k.toLowerCase().trim()===nl) return k; }
+    var nw=nl.split(' ');
+    for(var k in schedLookup){
+      var kw=k.toLowerCase().trim().split(' ');
+      var m=nw.filter(function(w){return kw.some(function(kk){return kk===w;});});
+      if(m.length>=2) return k;
+    }
+    return null;
+  }
+
+  // Use mandate list as the source of students
+  var mandateStudents=(PROVIDER_MANDATES[provider]||[]);
+  var byDay={};DAYS_ORDER.forEach(function(d){byDay[d]=[];});
+  var unscheduled=[];
+  var total=0,seen=0,absent=0;
+
+  mandateStudents.forEach(function(student){
+    var schedKey=findScheduleKey(student);
+    if(schedKey && schedLookup[schedKey] && schedLookup[schedKey].length){
+      schedLookup[schedKey].forEach(function(slot){
+        var done=isChecked(wk,provider,slot.day,slot.time,student);
+        var ab=isAbsent(wk,provider,slot.day,slot.time,student);
+        var nc=isNc(wk,provider,slot.day,slot.time,student);
+        if(!byDay[slot.day]) byDay[slot.day]=[];
+        byDay[slot.day].push({time:slot.time,subject:slot.subject,student:student,done:done,absent:ab,nc:nc});
+        total++;if(done)seen++;if(ab)absent++;
+      });
+    } else {
+      unscheduled.push(student);
+    }
+  });
+
+  var html='<div class="week-banner"><div><div class="week-label">Week of '+getWeekRange()+'</div>'
     +'<div class="week-sub">Checkoffs reset every Sunday</div></div>'
     +'<div class="week-reset-badge">Next reset: '+getNextSunday()+'</div></div>'
     +'<div class="print-bar no-print"><button class="btn-print" onclick="window.print()">Print / Share</button></div>'
@@ -353,15 +376,17 @@ function showProviderView(provider,tab){
     +'<div class="summary-card orange"><div class="num" id="sumRemain">'+(total-seen-absent)+'</div><div class="lbl">Remaining</div></div>'
     +'<div class="summary-card red"><div class="num" id="sumAbsent">'+absent+'</div><div class="lbl">Absent</div></div>'
     +'</div>';
-  DAYS_ORDER.forEach(day=>{
-    const sessions=byDay[day];if(!sessions.length)return;
+
+  DAYS_ORDER.forEach(function(day){
+    var sessions=byDay[day];if(!sessions||!sessions.length)return;
+    sessions.sort(function(a,b){return a.time-b.time;});
     html+='<div class="day-block"><div class="day-header">'+day+'</div>';
-    sessions.forEach(s=>{
-      const id=makeId(day,s.time,s.student);
-      const rowCls=s.absent?' absent-row':s.nc?' noncompliant-row':s.done?' checked':'';
-      const nameStyle=s.done?'text-decoration:line-through;color:#68d391;':s.absent?'color:#c53030;':s.nc?'color:#c05621;':'';
-      const pE=provider.replace(/'/g,"\\'"),sE=s.student.replace(/'/g,"\\'");
-      const tagHtml=s.absent?'<span class="status-tag absent">Absent</span>':s.nc?'<span class="status-tag nc">Non-Compliant</span>':'<span class="status-tag"></span>';
+    sessions.forEach(function(s){
+      var id=makeId(day,s.time,s.student);
+      var rowCls=s.absent?' absent-row':s.nc?' noncompliant-row':s.done?' checked':'';
+      var nameStyle=s.done?'text-decoration:line-through;color:#68d391;':s.absent?'color:#c53030;':s.nc?'color:#c05621;':'';
+      var pE=provider.replace(/'/g,"\\'"),sE=s.student.replace(/'/g,"\\'");
+      var tagHtml=s.absent?'<span class="status-tag absent">Absent</span>':s.nc?'<span class="status-tag nc">Non-Compliant</span>':'<span class="status-tag"></span>';
       html+='<div class="session-row'+rowCls+'" id="row_'+id+'">'
         +'<div class="time-col">'+timeStr(s.time)+'</div>'
         +'<div class="subject-col">'+s.subject+'</div>'
@@ -376,7 +401,23 @@ function showProviderView(provider,tab){
     html+='<div class="save-send-bar no-print"><button class="btn-save-send" onclick="openSendModal(\''+provider.replace(/'/g,"\\'")+'\',\''+day+'\')">&#128228; Save &amp; Send &#8212; '+day+'</button></div>';
     html+='</div>';
   });
-  const pSafe2=provider.replace(/'/g,"\\'");
+
+  // Unscheduled mandate students
+  if(unscheduled.length){
+    html+='<div class="day-block"><div class="day-header" style="background:#718096;">Not Yet Scheduled</div>';
+    unscheduled.forEach(function(student){
+      html+='<div class="session-row" style="opacity:0.6;">'
+        +'<div class="time-col" style="color:#a0aec0;">—</div>'
+        +'<div class="subject-col"></div>'
+        +'<div class="student-name">'+student+'</div>'
+        +'<span class="badge-unscheduled">Pending</span>'
+        +'<div class="action-btns"></div>'
+        +'</div>';
+    });
+    html+='</div>';
+  }
+
+  var pSafe2=provider.replace(/'/g,"\\'");
   container.innerHTML='<div class="prov-tabs no-print">'
     +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe2+'\',\'schedule\')">Schedule</button>'
     +'<button class="prov-tab" onclick="showProviderView(\''+pSafe2+'\',\'calls\')">Parent Calls</button>'
@@ -539,13 +580,7 @@ function updateCallSummary(provider){
 }
 
 function renderParentCallsTab(provider){
-  const pIdx=PROVIDERS.indexOf(provider),colIdx=pIdx+3;
-  const scheduledSet=new Set();
-  RAW.forEach(function(row){var s=(row[colIdx]||'').trim();if(s&&s!=='x'&&!s.startsWith('Group'))scheduledSet.add(s);});
-  const mandateList=(PROVIDER_MANDATES[provider]||[]);
-  const allStudents=Array.from(scheduledSet);
-  mandateList.forEach(function(s){if(!scheduledSet.has(s))allStudents.push(s);});
-  allStudents.sort();
+  const allStudents=(PROVIDER_MANDATES[provider]||[]).slice().sort();
   var talked=0;
   allStudents.forEach(function(s){if(getCallEntry(provider,s).status==='talked')talked++;});
   var html='<div class="call-log-bar"><div class="call-log-title">Parent Call Log</div>'
