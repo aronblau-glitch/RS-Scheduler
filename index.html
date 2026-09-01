@@ -325,11 +325,10 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
-    
     <h1>RS Schedule 2026&#8202;&#8211;&#8202;27</h1>
     <p>Provider &amp; Admin Portal</p>
     <div id="loginError" class="login-error">Incorrect password. Please try again.</div>
-    <label for="userSelect">Select your name</label>
+    <label for="loginSelect">Select your name</label>
     <select id="loginSelect">
       <option value="">— Choose —</option>
       <option value="Goldberger - SLP">Goldberger - SLP</option>
@@ -344,10 +343,10 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
       <option value="Kerenkraut - CO">Kerenkraut - CO</option>
       <option value="Werner - LMSW">Werner - LMSW</option>
       <option value="Weber - LMSW">Weber - LMSW</option>
-      <option value="Admin">Admin</option>
-      <option value="Office">Office</option>
+      <option value="admin">Admin</option>
+      <option value="office">Office</option>
     </select>
-    <label for="passInput">Password</label>
+    <label for="loginPass">Password</label>
     <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password">
     <div class="remember-row">
       <input type="checkbox" id="rememberMe">
@@ -357,22 +356,46 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="mainApp" style="display:none;">
+<!-- APP SCREEN -->
+<div id="appScreen" style="display:none;">
   <header class="no-print">
-    <h1 id="headerTitle">RS Schedule</h1>
+    <h1>RS Schedule &#8212; 26-27</h1>
     <div class="header-right">
-      <span id="headerUser"></span>
+      <span id="headerName"></span>
       <button class="btn-logout" onclick="doLogout()">Log out</button>
     </div>
   </header>
-  <div id="appContent"></div>
+
+  <div id="providerView" style="display:none;"></div>
+  <div id="adminView"   style="display:none;"></div>
+  <div id="officeView"  style="display:none;"></div>
 </div>
 
+<!-- SEND EMAIL MODAL -->
+<div id="sendModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Send Day Report</span>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+    <p class="send-day-label" id="sendModalDay"></p>
+    <div id="emailList"></div>
+    <div class="modal-add-row">
+      <input type="email" id="newEmailInput" placeholder="Add email address...">
+      <button class="btn-add-email" onclick="addEmail()">Add</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-send" onclick="sendReport()">Send Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL BANNER -->
 <div class="install-banner" id="installBanner">
   <p><strong>Add to Home Screen</strong>Install for quick access</p>
   <button class="btn-install" id="installBtn">Install</button>
-  <button class="btn-dismiss" onclick="document.getElementById('installBanner').classList.remove('visible')">✕</button>
+  <button class="btn-dismiss" onclick="hideBanner()">&#x2715;</button>
 </div>
 
 <script>
