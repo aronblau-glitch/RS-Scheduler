@@ -255,51 +255,63 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
   .student-name { font-size: 0.82rem; }
 }
 
-/* ── Provider tabs (Schedule / Parent Calls) ─────────────────────── */
-.prov-tabs { display:flex; gap:0; border-bottom:2px solid #e2e8f0; margin-bottom:16px; }
+/* ── Provider tabs ────────────────────────────────────────────────── */
+.prov-tabs { display:flex; border-bottom:2px solid #e2e8f0; margin-bottom:16px; }
 .prov-tab {
-  padding:10px 20px; font-size:0.9rem; font-weight:600; color:#718096;
+  padding:10px 22px; font-size:0.88rem; font-weight:600; color:#718096;
   background:none; border:none; border-bottom:3px solid transparent;
-  cursor:pointer; transition:all 0.15s; margin-bottom:-2px;
+  cursor:pointer; transition:all 0.15s; margin-bottom:-2px; letter-spacing:0.2px;
 }
 .prov-tab.active { color:#2d4a6e; border-bottom-color:#2d4a6e; }
 .prov-tab:hover:not(.active) { color:#2d4a6e; background:#f7fafc; }
 
-/* ── Call log UI ──────────────────────────────────────────────────── */
+/* ── Call log layout ──────────────────────────────────────────────── */
 .call-log-bar {
-  background:white; border-radius:12px; padding:16px 18px; margin-bottom:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  background:white; border-radius:12px; padding:14px 18px; margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08); display:flex; align-items:center;
+  justify-content:space-between;
 }
-.call-log-title { font-size:1rem; font-weight:700; color:#1a2332; margin-bottom:2px; }
-.call-summary { font-size:0.82rem; color:#718096; margin-bottom:0; }
+.call-log-title { font-size:0.95rem; font-weight:700; color:#1a2332; }
+.call-summary { font-size:0.82rem; color:#718096; font-weight:500; }
 
 .call-card {
-  background:white; border-radius:12px; padding:14px 16px; margin-bottom:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.06); border-left:4px solid #e2e8f0;
-  transition:border-color 0.2s;
+  background:white; border-radius:10px; padding:12px 14px; margin-bottom:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.07); border-left:3px solid #e2e8f0;
+  transition:border-color 0.15s;
 }
 .call-card.cs-talked    { border-left-color:#38a169; }
 .call-card.cs-nopickup  { border-left-color:#e53e3e; }
-.call-card.cs-voicemail { border-left-color:#805ad5; }
-.call-card.cs-multitried{ border-left-color:#dd6b20; }
+.call-card.cs-vm        { border-left-color:#805ad5; }
+.call-card.cs-multi     { border-left-color:#dd6b20; }
 .call-card.cs-callback  { border-left-color:#3182ce; }
 
-.call-card-name { font-size:0.95rem; font-weight:700; color:#1a2332; margin-bottom:6px; }
-.call-contacts-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; align-items:center; }
-.call-num {
-  font-size:0.8rem; padding:3px 8px; border-radius:6px; font-weight:600;
-  text-decoration:none; display:inline-block;
+.call-card-name {
+  font-size:0.92rem; font-weight:700; color:#1a2332; margin-bottom:6px;
+  display:flex; align-items:center; flex-wrap:wrap; gap:6px;
 }
+.call-contacts-row {
+  display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; align-items:center;
+}
+.call-num {
+  font-size:0.78rem; padding:4px 10px; border-radius:6px; font-weight:600;
+  text-decoration:none; display:inline-block; transition:opacity 0.15s;
+}
+.call-num:hover { opacity:0.8; }
 .call-num.father { background:#ebf8ff; color:#2b6cb0; }
 .call-num.mother { background:#fff0f6; color:#97266d; }
 .best-contact-tag {
   font-size:0.72rem; background:#fef3c7; color:#92400e; border-radius:4px;
-  padding:2px 6px; font-weight:600;
+  padding:2px 7px; font-weight:600;
 }
-.call-status-btns { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.pref-time-tag {
+  font-size:0.72rem; background:#e9f5ff; color:#1a6496; border-radius:4px;
+  padding:2px 7px; font-weight:600;
+}
+.call-status-btns { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
 .call-status-btn {
-  font-size:0.78rem; padding:5px 10px; border-radius:20px; border:2px solid #e2e8f0;
-  background:white; color:#4a5568; cursor:pointer; transition:all 0.15s; font-weight:600;
+  font-size:0.75rem; padding:5px 12px; border-radius:20px; border:1.5px solid #e2e8f0;
+  background:white; color:#718096; cursor:pointer; transition:all 0.15s;
+  font-weight:600; letter-spacing:0.1px;
 }
 .call-status-btn:hover { border-color:#2d4a6e; color:#2d4a6e; }
 .call-status-btn.active.opt-talked    { background:#38a169; border-color:#38a169; color:white; }
@@ -308,25 +320,25 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
 .call-status-btn.active.opt-multitried{ background:#dd6b20; border-color:#dd6b20; color:white; }
 .call-status-btn.active.opt-callback  { background:#3182ce; border-color:#3182ce; color:white; }
 .call-note-input {
-  width:100%; padding:7px 10px; border:2px solid #e2e8f0; border-radius:8px;
+  width:100%; padding:7px 10px; border:1.5px solid #e2e8f0; border-radius:8px;
   font-size:0.82rem; resize:none; outline:none; font-family:inherit;
-  transition:border-color 0.15s;
+  transition:border-color 0.15s; min-height:48px;
 }
 .call-note-input:focus { border-color:#2d4a6e; }
 
-/* ── New badge types ─────────────────────────────────────────────── */
+/* ── Unscheduled + preferred-time badges ─────────────────────────── */
+.badge-unscheduled {
+  font-size:0.68rem; background:#fef9e7; color:#7d6608; border-radius:4px;
+  padding:2px 6px; font-weight:600; border:1px solid #fde68a;
+}
+
+/* ── Service type badges ─────────────────────────────────────────── */
 .badge-pt   { background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px; font-size:0.72rem; font-weight:700; }
 .badge-lmsw { background:#fce7f3; color:#97266d; border-radius:4px; padding:1px 5px; font-size:0.72rem; font-weight:700; }
 
-/* ── Unscheduled & preferred-time badges ────────────────────────── */
-.badge-unscheduled {
-  font-size:0.7rem; background:#fff3cd; color:#856404; border-radius:4px;
-  padding:2px 6px; font-weight:600; margin-left:6px;
-}
-.pref-time-tag {
-  font-size:0.72rem; background:#e9f5ff; color:#1a6496; border-radius:4px;
-  padding:2px 6px; font-weight:600;
-}
+
+.login-logo { text-align:center; margin-bottom:16px; }
+.login-logo img { max-height:90px; max-width:220px; object-fit:contain; }
 
 </style>
 </head>
@@ -334,6 +346,9 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
 
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
+    <div class="login-logo" id="loginLogoWrap" style="display:none;">
+      <img id="loginLogoImg" src="" alt="Hadran Logo">
+    </div>
     <h1>RS Schedule 2026&#8202;&#8211;&#8202;27</h1>
     <p>Provider &amp; Admin Portal</p>
     <div id="loginError" class="login-error">Incorrect password. Please try again.</div>
@@ -422,193 +437,180 @@ const PROVIDERS = [
 ];
 const DAYS_ORDER = ['Monday','Tuesday','Wednesday','Thursday'];
 const RAW = [
-["Monday", 0.3854166666666667, "Breakfast", "", "Graus Chaim Meir", "", "", "", "", "Braunstein Avraham", "", "", "", "Salamon Shraga", ""],
-["Monday", 0.40625, "Breakfast", "", "Mering Rafuel Y.", "Czigler Nathen", "Rudich Joshua", "", "", "Erenfield Usher", "", "", "", "Diament Moishe", "Schlesinger Avraham"],
-["Monday", 0.4270833333333333, "1st session", "", "Diament Moishe", "Klein Mendy", "Reich Nathan", "", "", "Mering Rafuel Y.", "", "", "", "Sekula Hersh Meir", "Weberman Elimelach"],
-["Monday", 0.4479166666666667, "2nd Session", "", "Weiss Shloime", "Brull Yeshoshua", "Hickson Shlomo", "", "", "Epstein Moshe", "", "", "", "Klein Eli", "Feigenbaum Shalom"],
-["Monday", 0.46875, "2nd Session", "", "Salamon Shraga", "Epstein Isaac", "Sperber Moishe", "", "", "Dinowitz", "", "", "Fasten Chaim", "Styller Meyer", "Stern Shulem"],
-["Monday", 0.4895833333333333, "2nd Session", "Braunstein Avraham", "Fromowitz Abraham", "Zietlin Nathen", "Styller Meyer", "", "", "Slomiuc Yehuda", "", "", "Goldstien Hersch", "Sperber Moishe", "Oberlander Eli"],
-["Monday", 0.5104166666666666, "3rd Session", "Reich Chaim", "Hershkowitz Yanky", "Parnes Volvi", "Fasten Chaim", "", "", "Fogel Efraim", "", "", "Pollack Smiel", "Hickson Shlomo", "Loffler Hersch"],
-["Monday", 0.53125, "Lunch", "Gestetner Abraham", "Slomiuc Yehuda", "Spitz Moishe", "Schwartz Moshe", "", "", "Oberlander Eli", "", "", "Reich Chaim", "Epstein Isaac", "Mering Rafuel Y."],
-["Monday", 0.5520833333333334, "Lunch", "Freund Eli", "Fogel Efraim", "Weinberger Rafael", "Ganz Tzvi", "", "", "Gestetner Efraim", "", "", "Lowy Menachem", "Rubin Eliezer", "Mermelstein Yaakov"],
-["Monday", 0.5729166666666666, "English", "Toub Zisman", "Jeremias Joseph", "Stein David", "Klein Eli", "", "", "Fisher Zev", "", "", "Katz Israel", "Briskman Isaac", "Pollak Shmuel (2)"],
-["Monday", 0.59375, "English", "Schlesinger Avraham", "Gestetner Efraim", "Pollack Smiel", "Simon Eliyahu Meir", "", "", "Fromowitz Abraham", "", "", "Abramowits Shimon", "Erenfield Usher", "Weiss Shloime"],
-["Monday", 0.6145833333333334, "Math", "Weberman Elimelach", "Goldstien Hersch", "Abramowits Shimon", "Korzag Shalom", "", "", "Goldberger Eliyahu", "", "", "Babad Joseph", "Graus Chaim Meir", "Schwartz Joel"],
-["Monday", 0.6354166666666666, "Science", "Pollak Shmuel (2)", "Fisher Zev", "Weiss Shimon", "Flam Pinchas", "", "", "Loffler Hersch", "", "", "Gestetner Efraim", "Hershkowitz Yanky", "Shimon Pinchas"],
-["Monday", 0.6875, "Social Skills", "Schwartz Joel", "Sekula Hersh Meir", "Oberlander Eli", "Goldberger Eliyahu", "", "", "Hershkowitz Yanky", "", "", "Weiss Shimon", "Rudich Joshua", "Stern Shimon"],
-["Monday", 0.7083333333333334, "Social Skills", "Briskman Isaac", "Werzberger Shmiel", "Herman Zvi", "Briskman David", "", "", "Lowy Menachem", "", "", "Gestetner Abraham", "Schlesinger Borach", "Greenfield Shia"],
-["Monday", 0.7291666666666666, "Social Skills", "Blum Nechemiah", "Loffler Hersch", "Salamon Jacob", "Mermelstein Yaakov", "", "", "Brull Yeshoshua", "Zietlin Nathen", "", "Braunstein Avraham", "Slomiuc Yehuda", "Fisher Zev"],
-["Tuesday", 0.3854166666666667, "Breakfast", "", "", "", "", "", "", "Braunstein Avraham", "", "Parnes Volvi", "", "", ""],
-["Tuesday", 0.40625, "Breakfast", "", "", "", "", "", "Goldstien Hersch - Weiss Shimon", "Kanner Yehudah", "Katz Israel", "Fogel Efraim", "", "", ""],
-["Tuesday", 0.4270833333333333, "1st session", "", "", "", "", "", "Pollak Shmuel (2) - Babad Joseph", "Greenfield Shia", "Weiss Shloime", "Freund Eli", "", "", ""],
-["Tuesday", 0.4479166666666667, "2nd Session", "", "", "", "", "Weiss Shloime - Lowy Menachem", "Klein Eli - Hickson Shlomo", "Feigenbaum Shalom", "Czigler Nathen", "Korzag Shalom", "", "", ""],
-["Tuesday", 0.46875, "2nd Session", "", "", "", "", "Schwartz Joel - Reich Chaim", "Fasten Chaim - Stern Shimon", "Rudich Joshua", "Blum Nechemiah", "Weinberger Rafael", "", "", ""],
-["Tuesday", 0.4895833333333333, "2nd Session", "", "", "", "", "", "Sperber Moishe - Styller Meyer", "Schwartz Joel", "Kahn Chaim", "Blum Nechemiah", "", "", ""],
-["Tuesday", 0.5104166666666666, "3rd Session", "", "", "", "", "Shimon Pinchas - Briskman Isaac", "Gestetner Efraim - Fromowitz Abraham", "Briskman David", "Sekula Hirsch Meir", "Hollander Hershy", "", "", ""],
-["Tuesday", 0.53125, "Lunch", "", "", "", "", "Abramowits Shimon - Klein Mendy", "Exercise class", "Briskman Isaac", "Reich Chaim", "Jeremias Joseph", "", "", ""],
-["Tuesday", 0.5520833333333334, "Lunch", "", "", "", "", "Weinberger Rafael - Slomiuc Yehuda", "Salamon Shraga - Kanner Yehudah", "Toub Zisman", "Flam Pinchas", "Spitz Moishe", "", "", ""],
-["Tuesday", 0.5729166666666666, "English", "", "", "", "", "Stern Shulem - Braunstein Avraham", "Sekula Hirsch Meir - Blum Nechemiah", "Spitz Moishe", "Pollak Shmuel (2)", "Adler Aharon", "", "", ""],
-["Tuesday", 0.59375, "English", "", "", "", "", "Fogel Efraim - Toub Zisman", "Ganz Tzvi - Simon Eliyahu Meir", "Pollack Smiel", "Abramowits Shimon", "Flam Pinchas", "", "", ""],
-["Tuesday", 0.6145833333333334, "Math", "", "", "", "", "Spitz Moishe - Loffler Hersch", "Pollack Smiel - Rudich Joshua", "Weberman Elimelach", "Parnes Volvi", "Trieger Avrum Yakov", "", "", ""],
-["Tuesday", 0.6354166666666666, "Science", "", "", "", "", "Parnes Volvi - Feigenbaum Shalom", "Oberlander Eli", "Goldstien Hersch", "Silberman Moishe", "Klein Mendy", "", "", ""],
-["Tuesday", 0.6875, "Social Skills", "", "", "", "", "", "", "Stern Shimon", "Diament Moishe", "Wajsfeld Moishe", "", "", ""],
-["Tuesday", 0.7083333333333334, "Social Skills", "", "", "", "", "", "", "Trieger Yanky", "Shimon Pinchas", "Herman Zvi", "", "", ""],
-["Tuesday", 0.7291666666666666, "Social Skills", "", "", "", "", "", "", "Schlesinger Avraham", "Stern Shulem", "Zietlin Nathen", "", "", ""],
-["Wednesday", 0.3854166666666667, "Breakfast", "Toub Zisman", "Sekula Hersh Meir", "", "", "", "", "", "", "", "", "Salamon Shraga", ""],
-["Wednesday", 0.40625, "Breakfast", "Freund Eli", "Loffler Hersch", "Klein Mendy", "Rudich Joshua", "", "", "", "", "", "", "Briskman Isaac", "Briskman David"],
-["Wednesday", 0.4270833333333333, "1st session", "Hollander Hershy", "Mering Rafuel Y.", "Weiss Shimon", "Reich Nathan", "", "", "", "", "", "", "Erenfield Usher", "Stern Shimon"],
-["Wednesday", 0.4479166666666667, "2nd Session", "Braunstein Avraham", "Slomiuc Yehuda", "Epstein Isaac", "Hickson Shlomo", "", "", "", "", "", "", "Schwartz Moshe", "Brull Yeshoshua"],
-["Wednesday", 0.46875, "2nd Session", "Blum Nechemiah", "Diament Moishe", "Czigler Nathen", "Styller Meyer", "", "", "", "", "", "", "Rudich Joshua", "Stern Shulem"],
-["Wednesday", 0.4895833333333333, "2nd Session", "Briskman Isaac", "Graus Chaim Meir", "Zietlin Nathen", "Sperber Moishe", "", "", "", "", "", "Goldstien Hersch", "Czigler Nathen", "Feigenbaum Shalom"],
-["Wednesday", 0.5104166666666666, "3rd Session", "Reich Chaim", "Fogel Efraim", "Parnes Volvi", "Fasten Chaim", "", "", "", "", "", "Pollack Smiel", "Graus Chaim Meir", "Loffler Hersch"],
-["Wednesday", 0.53125, "Lunch", "Gestetner Abraham", "Jeremias Joseph", "Spitz Moishe", "Schwartz Moshe", "", "", "", "", "", "Reich Chaim", "Hershkowitz Yanky", "Fromowitz Abraham"],
-["Wednesday", 0.5520833333333334, "Lunch", "Shimon Pinchas", "Gestetner Efraim", "Greenfield Shia", "Ganz Tzvi", "", "", "", "", "", "Lowy Menachem", "Kahn Chaim", "Mering Rafuel Y."],
-["Wednesday", 0.5729166666666666, "English", "Stern Shimon", "Goldstien Hersch", "Feigenbaum Shalom", "Klein Eli", "", "", "", "", "", "Salamon Jacob", "Graus Chaim Meir", "Shimon Pinchas"],
-["Wednesday", 0.59375, "English", "Pollak Shmuel (2)", "Weiss Shloime", "Silberman Moishe", "Simon Eliyahu Meir", "", "", "", "", "", "Abramowits Shimon", "Sperber Moishe", "Fisher Zev"],
-["Wednesday", 0.6145833333333334, "Math", "Schlesinger Avraham", "Fromowitz Abraham", "Brull Yeshoshua", "Korzag Shalom", "", "", "", "", "", "Gestetner Abraham", "Slomiuc Yehuda", "Goldberger Eliyahu"],
-["Wednesday", 0.6354166666666666, "Science", "Schwartz Joel", "Hershkowitz Yanky", "Oberlander Eli", "Flam Pinchas", "", "", "", "", "", "Gestetner Efraim", "Toub Zisman", "Weberman Elimelach"],
-["Wednesday", 0.6875, "Social Skills", "Weberman Elimelach", "Salamon Shraga", "Abramowits Shimon", "Goldberger Eliyahu", "", "", "", "", "", "Braunstein Avraham", "Werzberger Shmiel", "Weiss Shloime"],
-["Wednesday", 0.7083333333333334, "Social Skills", "Lowy Menachem", "Werzberger Shmiel", "Pollack Smiel", "Briskman David", "", "", "", "", "", "Weiss Shimon", "Taub Efraim", "Mermelstein Yaakov"],
-["Wednesday", 0.7291666666666666, "Social Skills", "Adler Aharon", "Fisher Zev", "Weinberger Rafael", "Mermelstein Yaakov", "", "", "", "Weiss Shimon", "", "Babad Joseph", "Silberman Moishe", "Oberlander Eli"],
-["Thursday", 0.3854166666666667, "Breakfast", "", "", "", "", "", "", "Spitz Moishe", "", "Adler Aharon", "", "Hickson Shlomo", ""],
-["Thursday", 0.40625, "Breakfast", "", "", "Erenfield Usher", "", "", "Goldstien Hersch - Weiss Shimon", "Brull Yeshoshua", "Shimon Pinchas", "Fogel Efraim", "", "Reich Nathan", ""],
-["Thursday", 0.4270833333333333, "1st session", "", "", "Graus Chaim Meir", "", "", "Pollak Shmuel (2) - Babad Joseph", "Sperber Moishe", "Freund Eli", "Klein Mendy", "", "Epstein Isaac", ""],
-["Thursday", 0.4479166666666667, "2nd Session", "", "", "Kahn Chaim", "", "Stern Shulem - Braunstein Avraham", "Klein Eli - Hickson Shlomo", "Weberman Elimelach", "Reich Chaim", "Korzag Shalom", "", "Schwartz Moshe", ""],
-["Thursday", 0.46875, "2nd Session", "", "", "Schlesinger Borach", "", "Epstein Moshe - Toub Zisman", "Fasten Chaim - Stern Shimon", "Styller Meyer", "Zietlin Nathen", "Blum Nechemiah", "", "Ganz Tzvi", ""],
-["Thursday", 0.4895833333333333, "2nd Session", "", "", "Stern Shulem", "", "Stein David - Loffler Hersch", "Sperber Moishe - Styller Meyer", "Schwartz Joel", "Blum Nechemiah", "Weinberger Rafael", "", "Schlesinger Borach", ""],
-["Thursday", 0.5104166666666666, "3rd Session", "", "", "Stein David", "", "Schwartz Joel", "Gestetner Efraim - Fromowitz Abraham", "Reich Nathan", "Werzberger Shmiel", "Hollander Hershy", "", "Simon Eliyahu Meir", ""],
-["Thursday", 0.53125, "Lunch", "", "", "Silberman Moishe", "", "Exercise class", "Oberlander Eli", "Ganz Tzvi", "Abramowits Shimon", "Jeremias Joseph", "", "Epstein Moshe", ""],
-["Thursday", 0.5520833333333334, "Lunch", "", "", "Katz Israel", "", "Weiss Shloime - Lowy Menachem", "Weberman Elimelach - Kanner Yehudah", "Gestetner Efraim", "Parnes Volvi", "Wajsfeld Moishe", "", "Kanner Yehudah", ""],
-["Thursday", 0.5729166666666666, "English", "", "", "Wajsfeld Moishe", "", "Shimon Pinchas - Briskman Isaac", "Blum Nechemiah - Sekula Hirsch Meir", "Simon Eliyahu Meir", "Silberman Moishe", "Parnes Volvi", "", "Dinowitz", ""],
-["Thursday", 0.59375, "English", "", "", "Feigenbaum Shalom", "", "Weinberger Rafael - Slomiuc Yehuda", "Ganz Tzvi - Simon Eliyahu Meir", "Klein Eli", "Babad Joseph", "Spitz Moishe", "", "", ""],
-["Thursday", 0.6145833333333334, "Math", "", "", "Babad Joseph", "", "Parnes Volvi - Feigenbaum Shalom", "Salamon Shraga - Rudich Joshua", "Toub Zisman", "Herman Zvi", "Trieger Avrum Yakov", "", "", ""],
-["Thursday", 0.6354166666666666, "Science", "", "", "Epstein Moshe", "", "Reich Chaim - Spitz Moishe", "Pollack Smiel", "Mermelstein Yaakov", "Diament Moishe", "Reichberg Yizchok", "", "", ""],
-["Thursday", 0.6875, "Social Skills", "", "", "Trieger Avrum Yakov", "", "", "", "Pollack Smiel", "Weinberger Rafael", "Freund Eli", "", "", ""],
-["Thursday", 0.7083333333333334, "Social Skills", "", "", "Kanner Yehudah", "", "", "", "Oberlander Eli", "Stern Shulem", "Flam Pinchas", "", "", ""],
-["Thursday", 0.7291666666666666, "Social Skills", "", "", "Herman Zvi", "", "", "", "Epstein Isaac", "Kahn Chaim", "Zietlin Nathen", "", "", ""],
+["Monday",0.3854166666666667,"Breakfast","","Graus Chaim Meir","","","","","Braunstein Avraham","","","","Salamon Shraga",""],
+["Monday",0.40625,"Breakfast","","Mering Rafuel Y.","Czigler Nathen","Rudich Joshua","","","Erenfield Usher","","","","Diament Moishe","Schlesinger Avraham"],
+["Monday",0.4270833333333333,"1st session","","Diament Moishe","Klein Mendy","Reich Nathan","","","Mering Rafuel Y.","","","","Sekula","Weberman Elimelach"],
+["Monday",0.4479166666666667,"2nd Session","","Weiss Shloime","Brull Yeshoshua","Hickson Shlomo","","","Epstein Moshe","","","","Klein Eli","Feigenbaum Shalom"],
+["Monday",0.46875,"2nd Session","","Salamon Shraga","Epstein Isaac","Sperber Moishe","","","Dinowitz","","","Fasten Chaim","Styller Meyer","Stern Shulem"],
+["Monday",0.4895833333333333,"2nd Session","Braunstein Avraham","Fromowitz/Frenkel Abraham","Zietlin Nathen","Styller Meyer","","","Slomiuc Yehuda","","","Goldstien Hersch","Sperber Moishe","Oberlander Eli"],
+["Monday",0.5104166666666666,"3rd Session","Reich Chaim","Hershkowitz Yanky","Parnes Volvi","Fasten Chaim","","","Fogel Efraim","","","Pollack Shmiel","Hickson Shlomo","Loffler Hersch"],
+["Monday",0.53125,"Lunch","Gestetner Abraham","Slomiuc Yehuda","Spitz Moishe","Schwartz Moshe","","","Oberlander Eli","","","Reich Chaim","Epstein Isaac","Mering Rafuel Y."],
+["Monday",0.5520833333333334,"Lunch","Freund Eli","Fogel Efraim","Weinberger Rafael","Ganz Tzvi","","","Gestetner Efraim","","","Lowy Menachem","Rubin Eliezer","Mermelstein Yaakov"],
+["Monday",0.5729166666666666,"English","Toub Zisman","Jeremias Joseph","Stein David","Klein Eli","","","Fisher Zev","","","Katz Israel","Briskman Isaac","Pollak Shmuel (2)"],
+["Monday",0.59375,"English","Schlesinger Avraham","Gestetner Efraim","Pollack Smiel","Simon Eliyahu Meir","","","Fromowitz/Frenkel Abraham","","","Abramowits Shimon","Erenfield Usher","Weiss Shloime"],
+["Monday",0.6145833333333334,"Math","Weberman Elimelach","Goldstien Hersch","Abramowits Shimon","korzag Shalom","","","Goldberger Eliyahu","","","Babad Joseph","Graus Chaim","Schwartz Joel"],
+["Monday",0.6354166666666666,"Science","Pollak Shmuel (2) /Schwartz Joel","Fisher Zev","Weiss Shimon","Flam Pinchas","","","Loffler Hersch","","","Gestetner Efraim","Hershkowitz Yanky","Shimon Pinchas"],
+["Monday",0.6875,"social skill group","Schwartz Joel","Sekula Hersh Meir","Oberlander Eli","Goldberger Eliyahu","","","Hershkowitz Yanky","","","Weiss Shimon","Rudich Joshua","Stern Shimon"],
+["Monday",0.7083333333333334,"social skill group","Briskman Isaac","Werzberger Shmiel","Herman Zvi","Briskman David","","","Lowy Menachem","","","Gestetner Abraham","Schlesinger Borach","Greenfield Shia"],
+["Monday",0.7291666666666666,"social skill group","Blum Nechemiah","Loffler Hersch","Salamon Jacob","Mermelstein Yaakov","","","Brull Yeshoshua","Zietlin Nathen","","Braunstein Avraham","Slomiuc Yehuda","Fisher Zev"],
+["Tuesday",0.3854166666666667,"Breakfast","","","","","","","Braunstein Avraham","","Parnes Volvi","","",""],
+["Tuesday",0.40625,"Breakfast","","","","","","Goldstien Hersch - Weiss Shimon","Kanner Yehudah","Katz Israel","Fogel Efraim","","",""],
+["Tuesday",0.4270833333333333,"1st session","","","","","","Pollak Shmuel (2) - Babad Joseph","Greenfield Shia","Weiss Shloime","Freund Eli","","",""],
+["Tuesday",0.4479166666666667,"2nd Session","","","","","Weiss Shloime - Lowy Menachem","Eli Klein – Shlomo Hickson","Feigenbaum Shalom","Czigler Nathen","karczak Shalom","","",""],
+["Tuesday",0.46875,"2nd Session","","","","","Schwatrz Joel - Chaim Reich","Chaim Fasten - Stern Shimon","Rudich Joshua","Blum Nechemiah","Weinberger Rafael","","",""],
+["Tuesday",0.4895833333333333,"2nd Session","","","","","","Moishe Sperber -  Meir Styller","Schwartz Joel","Kahn Chaim","Blum Nechemiah","","",""],
+["Tuesday",0.5104166666666666,"3rd Session","","","","","Shimon Pinchas - Briskman Isaac","Efraim gestetner -  Fromwitz Avrumi","Briskman David","Sekula Hirsch Meir","Hollander Hershy","","",""],
+["Tuesday",0.53125,"Lunch","","","","","Abramowits Shimon - Klein Mendy","Exercise class","Briskman Isaac","Reich Chaim","Jeremias Joseph","","",""],
+["Tuesday",0.5520833333333334,"Lunch","","","","","Weinberger Rafael - Slomiuc Yehudah","Salamon Shraga- Yehuda Kanner","Toub Zisman","Flam Pinchas","Spitz Moishe","","",""],
+["Tuesday",0.5729166666666666,"English","","","","","Stern Shulem - Braunstein Avrohom","Sekula Hirsch Meir - Blum Nechamia","Spitz Moishe","Pollak Shmuel (2)","Adler Aharon","","",""],
+["Tuesday",0.59375,"English","","","","","Fogel Efraim - Toub Zisman","Tzvi Ganz – Eliyahu Meir Simon","Pollack Smiel","Abramowits Shimon","Flam Pinchas","","",""],
+["Tuesday",0.6145833333333334,"Math","","","","","Spitz Moishe - Loffler Hersch","Pollack Shmiel - Rudich Shia","Weberman Elimelach","Parnes Volvi","Trieger Avrum Yakov","","",""],
+["Tuesday",0.6354166666666666,"Science","","","","","Parnes Volvi - Feigenbaum Shalom","Oberlander Eli","Goldstien Hersch","Silberman Moishe","Klein Mendy","","",""],
+["Tuesday",0.6875,"social skill group","","","","","","","Stern Shimon","Diament Moishe","Wajsfeld Moishe","","",""],
+["Tuesday",0.7083333333333334,"social skill group","","","","","","","Trieger Yanky","Shimon Pinchas","Herman Zvi","","",""],
+["Tuesday",0.7291666666666666,"social skill group","","","","","","","Schlesinger Avraham","Stern Shulem","Zietlin Nathen","","",""],
+["Wednesday",0.3854166666666667,"Breakfast","Toub Zisman","Sekula Hersh Meir","","","","","","","","","Salamon Shraga",""],
+["Wednesday",0.40625,"Breakfast","Freund Eli","Loffler Hersch","Klein Mendy","Rudich Joshua","","","","","","","Briskman Isaac","Briskman David"],
+["Wednesday",0.4270833333333333,"1st session","Hollander Hershy","Mering Rafuel Y.","Weiss Shimon","Reich Nathan","","","","","","","Erenfield Usher","Stern Shimon"],
+["Wednesday",0.4479166666666667,"2nd Session","Braunstein Avraham","Slomiuc Yehuda","Epstein Isaac","Hickson Shlomo","","","","","","","Schwartz Moshe","Brull Yeshoshua"],
+["Wednesday",0.46875,"2nd Session","Blum Nechemiah","Diament Moishe","Czigler Nathen","Styller Meyer","","","","","","","Rudich Joshua","Stern Shulem"],
+["Wednesday",0.4895833333333333,"2nd Session","Briskman Isaac","Graus Chaim Meir","Zietlin Nathen","Sperber Moishe","","","","","","Goldstien Hersch","Czigler Nathen","Feigenbaum Shalom"],
+["Wednesday",0.5104166666666666,"3rd Session","Reich Chaim","Fogel Efraim","Parnes Volvi","Fasten Chaim","","","","","","Pollack Smiel","Graus Chaim Meir","Loffler Hersch"],
+["Wednesday",0.53125,"Lunch","Gestetner Abraham","Jeremias Joseph","Spitz Moishe","Schwartz Moshe","","","","","","Reich Chaim","Hershkowitz Yanky","Fromowitz/Frenkel Abraham"],
+["Wednesday",0.5520833333333334,"Lunch","Shimon Pinchas","Gestetner Efraim","Greenfield Shia","Ganz Tzvi","","","","","","Lowy Menachem","Kahn Chaim","Mering Rafuel Y."],
+["Wednesday",0.5729166666666666,"English","Stern Shimon","Goldstien Hersch","Feigenbaum Shalom","Klein Eli","","","","","","Salamon Jacob","Graus Chaim","Shimon Pinchas"],
+["Wednesday",0.59375,"English","Pollak Shmuel (2)","Weiss Shloime","Silberman Moishe","Simon Eliyahu Meir","","","","","","Abramowits Shimon","Sperber Moishe","Fisher Zev"],
+["Wednesday",0.6145833333333334,"Math","Schlesinger Avraham","Fromowitz/Frenkel Abraham","Brull Yeshoshua","korzag Shalom","","","","","","Gestetner Abraham","Slomiuc Yehuda","Goldberger Eliyahu"],
+["Wednesday",0.6354166666666666,"Science","Schwartz Joel","Hershkowitz Yanky","Oberlander Eli","Flam Pinchas","","","","","","Gestetner Efraim","Toub Zisman","Weberman Elimelach"],
+["Wednesday",0.6875,"social skill group","Weberman Elimelach","Salamon Shraga","Abramowits Shimon","Goldberger Eliyahu","","","","","","Braunstein Avraham","Werzberger Shmiel","Weiss Shloime"],
+["Wednesday",0.7083333333333334,"social skill group","Lowy Menachem","Werzberger Shmiel","Pollack Smiel","Briskman David","","","","","","Weiss Shimon","Taub Efraim","Mermelstein Yaakov"],
+["Wednesday",0.7291666666666666,"social skill group","Adler Aharon","Fisher Zev","Weinberger Rafael","Mermelstein Yaakov","","","","Weiss Shimon","","Babad Joseph","Silberman Moishe","Oberlander Eli"],
+["Thursday",0.3854166666666667,"Breakfast","","","","","","","Spitz Moishe","","Adler Aharon","","Hickson Shlomo",""],
+["Thursday",0.40625,"Breakfast","","","Erenfield Usher","","","Goldstien Hersch - Weiss Shimon","Brull Yeshoshua","Shimon Pinchas","Fogel Efraim","","Reich Nathan",""],
+["Thursday",0.4270833333333333,"1st session","","","Graus Chaim","","","Pollak Shmuel (2) - Babad Joseph","Sperber Moishe","Freund Eli","Klein Mendy","","Epstein Isaac",""],
+["Thursday",0.4479166666666667,"2nd Session","","","Kahn Chaim","","Stern Shulem - Braunstein Avrohom","Eli Klein – Shlomo Hickson","Weberman Elimelach","Reich Chaim","karczak Shalom","","Schwartz Moshe",""],
+["Thursday",0.46875,"2nd Session","","","Schlesinger Borach","","Epstein Moshe - Toub Zisman","Chaim Fasten - Stern Shimon","Styller Meyer","Zietlin Nathen","Blum Nechemiah","","Ganz Tzvi",""],
+["Thursday",0.4895833333333333,"2nd Session","","","Stern Shulem","","Stein David - Loffler Hersch","Moishe Sperber -  Meir Styller","Schwartz Joel","Blum Nechemiah","Weinberger Rafael","","Schlesinger Borach",""],
+["Thursday",0.5104166666666666,"3rd Session","","","Stein David","","Schwatrz Joel -","Gestetner Efraim - Fromowitz Avrumi","Reich Nathan","Werzberger Shmiel","Hollander Hershy","","Simon Eliyahu Meir",""],
+["Thursday",0.53125,"Lunch","","","Silberman Moishe","","Exercise class","Oberlander Eli","Ganz Tzvi","Abramowits Shimon","Jeremias Joseph","","Epstein Moshe",""],
+["Thursday",0.5520833333333334,"Lunch","","","Katz Israel","","Weiss Shloime - Lowy Menachem","Weberman Elimelach - Kanner Yehudah","Gestetner Efraim","Parnes Volvi","Wajsfeld Moishe","","Kanner Yehudah",""],
+["Thursday",0.5729166666666666,"English","","","Wajsfeld Moishe","","Shimon Pinchas - Briskman Isaac","Blum Nechamia - Hersch Meir Sekula","Simon Eliyahu Meir","Silberman Moishe","Parnes Volvi","","Dinowitz",""],
+["Thursday",0.59375,"English","","","Feigenbaum Shalom","","Weinberger Rafael - Slomiuc Yehudah","Tzvi Ganz – Eliyahu Meir Simon","Klein Eli","Babad Shulem","Spitz Moishe","","",""],
+["Thursday",0.6145833333333334,"Math","","","Babad Joseph","","Parnes Volvi - Feigenbaum Shalom","Salamon Shraga - Rudich Shia","Toub Zisman","Herman Zvi","Trieger Avrum Yakov","","",""],
+["Thursday",0.6354166666666666,"Science","","","Epstein Moshe","","Chaim Reich - Spitz Moishe","Pollack Shmiel","Mermelstein Yaakov","Diament Moishe","Reichberg Yizchok","","",""],
+["Thursday",0.6875,"social skill group","","","Trieger Avrum Yakov","","","","Pollack Smiel","Weinberger Rafael","Freund Eli","","",""],
+["Thursday",0.7083333333333334,"social skill group","","","Kanner Yehudah","","","","Oberlander Eli","Stern Shulem","Flam Pinchas","","",""],
+["Thursday",0.7291666666666666,"social skill group","","","Herman Zvi","","","","Epstein Isaac","Kahn Chaim","Zietlin Nathen","","",""]
 ];
 
 const STUDENT_CONTACTS = {
-  "Abrahamowitz Shimon":  {father:"718-541-1979",mother:"347-939-6814",home:"718-686-2766",bestContact:"Father",preferredTime:"Afternoon"},
-  "Abramowits Shimon":    {father:"718-541-1979",mother:"347-939-6814",home:"718-686-2766",bestContact:"Father",preferredTime:"Afternoon"},
-  "Abramovitz Nechemia":  {father:"347-946-5719",mother:"347-628-4818",home:"718-285-4900",bestContact:"",preferredTime:""},
-  "Abramowitz Nechemia":  {father:"347-946-5719",mother:"347-628-4818",home:"718-285-4900",bestContact:"",preferredTime:""},
-  "Abramson Yochonan":    {father:"718-637-7042",mother:"718-344-3446",home:"718-951-2534",bestContact:"Mom",preferredTime:""},
+  "Abrahamowitz Shimon":{father:"718-541-1979",mother:"347-939-6814",home:"718-686-2766",bestContact:"Father",preferredTime:"Afternoon"},
+  "Abramovitz Shlomy":{father:"347-946-5719",mother:"347-628-4818",home:"718-285-4900",bestContact:"",preferredTime:""},
+  "Abramson Yochonan":{father:"718-637-7042",mother:"718-344-3446",home:"718-951-2534",bestContact:"Mom",preferredTime:""},
   "Axelrod Levi Yitzchak":{father:"347-633-4680",mother:"908-812-7679",home:"908-812-7679",bestContact:"Both",preferredTime:""},
-  "Babad Joseph":         {father:"718-208-6843",mother:"718-673-1675",home:"718-935-0120",bestContact:"Both",preferredTime:""},
-  "Bergman Moshe":        {father:"347-666-4032",mother:"347-232-0365",home:"718-435-4638",bestContact:"Both",preferredTime:""},
-  "Bergman Moishe":       {father:"347-666-4032",mother:"347-232-0365",home:"718-435-4638",bestContact:"Both",preferredTime:""},
-  "Blum Nechemiah":       {father:"646-286-9948",mother:"347-731-9801",home:"718-437-2137",bestContact:"Both",preferredTime:""},
-  "Blum Nechemia":        {father:"646-286-9948",mother:"347-731-9801",home:"718-437-2137",bestContact:"Both",preferredTime:""},
-  "Brauner Bentzion":     {father:"917-407-2556",mother:"917-407-2558",home:"718-686-8182",bestContact:"Both",preferredTime:""},
-  "Braver Naftula":       {father:"347-452-5436",mother:"347-388-2440",home:"718-387-0058",bestContact:"Dad",preferredTime:""},
-  "Briskman Shimon":      {father:"718-753-5000",mother:"917-873-3435",home:"718-438-1049",bestContact:"Mother",preferredTime:""},
-  "Briskman David":       {father:"718-753-5000",mother:"917-873-3435",home:"718-438-1049",bestContact:"Mother",preferredTime:""},
-  "Briskman Dovid":       {father:"718-753-5000",mother:"917-873-3435",home:"718-438-1049",bestContact:"Mother",preferredTime:""},
-  "Briskman Isaac":       {father:"718-753-5000",mother:"917-873-3435",home:"718-438-1049",bestContact:"Mother",preferredTime:""},
-  "Brown Mayer":          {father:"917-207-2530",mother:"347-946-4373",home:"718-384-0549",bestContact:"Mother",preferredTime:""},
-  "Brown Meir":           {father:"917-207-2530",mother:"347-946-4373",home:"718-384-0549",bestContact:"Mother",preferredTime:""},
-  "Brull Yehoshua":       {father:"347-328-3119",mother:"347-405-4777",home:"718-436-5202",bestContact:"Both",preferredTime:""},
-  "Brull Yeshoshua":      {father:"347-328-3119",mother:"347-405-4777",home:"718-436-5202",bestContact:"Both",preferredTime:""},
-  "Ehrenfeld Usher":      {father:"845-642-4165",mother:"718-812-1056",home:"845-425-6409",bestContact:"Mother",preferredTime:""},
-  "Erenfield Usher":      {father:"845-642-4165",mother:"718-812-1056",home:"845-425-6409",bestContact:"Mother",preferredTime:""},
-  "Epstein Isaac":        {father:"347-683-0503",mother:"917-627-3122",home:"718-388-0902",bestContact:"Mother",preferredTime:""},
-  "Feigenbaum Shalom":    {father:"914-645-7941",mother:"845-367-2038",home:"845-425-0574",bestContact:"Both",preferredTime:""},
-  "Fisch Moshe":          {father:"347-598-2831",mother:"718-930-1780",home:"718-930-1780",bestContact:"Both",preferredTime:""},
-  "Fischer Zev":          {father:"917-502-0711",mother:"347-831-0264",home:"718-486-0413",bestContact:"Father",preferredTime:""},
-  "Fisher Zev":           {father:"917-502-0711",mother:"347-831-0264",home:"718-486-0413",bestContact:"Father",preferredTime:""},
-  "Flam Pinchas":         {father:"732-278-9870",mother:"732-278-9819",home:"",bestContact:"Both",preferredTime:""},
-  "Fogel Efraim":         {father:"914-299-9800",mother:"914-299-4456",home:"718-972-0541",bestContact:"Mom",preferredTime:""},
-  "Freund Eli":           {father:"347-645-7980",mother:"347-628-4635",home:"718-384-5065",bestContact:"Both",preferredTime:"Mon & Wed Afternoon/Evening"},
-  "Gestetner Abraham":    {father:"347-585-0822",mother:"347-986-0557",home:"718-854-4203",bestContact:"Both",preferredTime:"9-10am or 3-4pm"},
-  "Gestetner Avraham":    {father:"347-585-0822",mother:"347-986-0557",home:"718-854-4203",bestContact:"Both",preferredTime:"9-10am or 3-4pm"},
-  "Gestetner Efraim":     {father:"347-693-5150",mother:"347-564-6106",home:"718-853-0195",bestContact:"Father",preferredTime:""},
-  "Gestetner Shloime":    {father:"347-693-5150",mother:"347-564-6106",home:"718-853-0195",bestContact:"Father",preferredTime:""},
-  "Gluck Aaron":          {father:"718-414-7191",mother:"347-799-4735",home:"718-232-0552",bestContact:"",preferredTime:""},
-  "Gluck Aron":           {father:"718-414-7191",mother:"347-799-4735",home:"718-232-0552",bestContact:"",preferredTime:""},
-  "Goldberger Eliyahu":   {father:"347-452-6699",mother:"347-489-1681",home:"347-489-1681",bestContact:"Both",preferredTime:""},
-  "Goldhirsch Abraham":   {father:"347-898-5715",mother:"917-453-6772",home:"718-384-4562",bestContact:"Father",preferredTime:""},
-  "Goldhirsch Avrohom Simcha":{father:"347-898-5715",mother:"917-453-6772",home:"718-384-4562",bestContact:"Father",preferredTime:""},
-  "Gottlieb Shulem":      {father:"845-637-4369",mother:"845-776-0257",home:"845-783-3652",bestContact:"Father",preferredTime:""},
-  "Gross Israel":         {father:"646-773-2584",mother:"347-228-1967",home:"718-384-2442",bestContact:"Mom",preferredTime:""},
+  "Babad Joseph":{father:"718-208-6843/3475008172",mother:"718-673-1675",home:"718-935-0120",bestContact:"Both",preferredTime:""},
+  "Bergman Moshe":{father:"347-666-4032",mother:"347-232-0365",home:"718-435-4638",bestContact:"Both",preferredTime:""},
+  "Blum Nechemia":{father:"646-286-9948",mother:"347-731-9801",home:"718-437-2137",bestContact:"Both",preferredTime:""},
+  "Brauner Bentzion":{father:"917-407-2556",mother:"917-407-2558",home:"718-686-8182",bestContact:"Both",preferredTime:""},
+  "Braver Naftula":{father:"347-452-5436",mother:"347-388-2440",home:"718-387-0058",bestContact:"Dad",preferredTime:""},
+  "Briskman Shimon":{father:"718-753-5000",mother:"917-873-3435",home:"718-438-1049",bestContact:"Mother",preferredTime:""},
+  "Briskman Dovid":{father:"718-753-5000",mother:"917-873-3435",home:"718-438-1049",bestContact:"Mother",preferredTime:""},
+  "Briskman Isaac":{father:"718-753-5000",mother:"917-873-3435",home:"718-438-1049",bestContact:"Mother",preferredTime:""},
+  "Brown Mayer":{father:"917-207-2530",mother:"347-946-4373",home:"718-384-0549",bestContact:"Mother",preferredTime:""},
+  "Brull Yehoshua":{father:"347-328-3119",mother:"347-405-4777",home:"718-436-5202",bestContact:"Both",preferredTime:""},
+  "Ehrenfeld Usher":{father:"845-642-4165",mother:"718-812-1056",home:"845-425-6409",bestContact:"Mother",preferredTime:""},
+  "Epstein Isaac":{father:"347-683-0503",mother:"917-627-3122",home:"718-388-0902",bestContact:"mother",preferredTime:""},
+  "Feigenbaum Shalom":{father:"914-645-7941",mother:"845-367-2038",home:"845-425-0574",bestContact:"Both",preferredTime:""},
+  "Fisch Moshe":{father:"347-598-2831",mother:"718-930-1780",home:"718-930-1780",bestContact:"Both",preferredTime:""},
+  "Fischer Zev":{father:"917-502-0711",mother:"347-831-0264",home:"718-486-0413",bestContact:"Father",preferredTime:""},
+  "Flam Pinchas Eliezer":{father:"732-278-9870",mother:"732-278-9819",home:"",bestContact:"Both",preferredTime:""},
+  "Fogel Efraim":{father:"914-299-9800",mother:"914-299-4456",home:"718-972-0541",bestContact:"Mom",preferredTime:""},
+  "Freund Eli":{father:"347-645-7980",mother:"347-628-4635",home:"718-384-5065",bestContact:"Both",preferredTime:"Mon. & Wed. Afternoon or evening"},
+  "Gestetner Avraham":{father:"347-585-0822",mother:"347-986-0557",home:"718-854-4203",bestContact:"Both",preferredTime:"9-10am - 3-4pm 8-10pm"},
+  "Gestetner Efraim":{father:"347-693-5150",mother:"347-564-6106",home:"718-853-0195",bestContact:"Father",preferredTime:""},
+  "Gestetner Solomon":{father:"347-693-5150",mother:"347-564-6106",home:"718-853-0195",bestContact:"Father",preferredTime:""},
+  "Gluck Aaron":{father:"718-414-7191",mother:"347-799-4735",home:"718-232-0552",bestContact:"",preferredTime:""},
+  "Goldberger Eliyahu":{father:"347-452-6699",mother:"347-489-1681",home:"347-489-1681",bestContact:"Both",preferredTime:""},
+  "Goldhirsch Abraham":{father:"347-898-5715",mother:"917-453-6772",home:"718-384-4562",bestContact:"Father",preferredTime:""},
+  "Gottlieb Shulem":{father:"845-637-4369",mother:"845-776-0257",home:"845-783-3652",bestContact:"Father",preferredTime:""},
+  "Gross Israel":{father:"646-773-2584",mother:"347-228-1967",home:"7183842442",bestContact:"Mom",preferredTime:""},
   "Halberstam Hersh Meilech":{father:"718-208-8614",mother:"718-810-0794",home:"",bestContact:"Mom",preferredTime:""},
-  "Heimfeld Avrohom":     {father:"347-801-1666",mother:"347-585-1287",home:"718-871-5795",bestContact:"",preferredTime:""},
-  "Hershkowitz Yanky":    {father:"917-796-3798",mother:"347-743-9270",home:"718-599-5291",bestContact:"Both",preferredTime:""},
-  "Hollander Hershy":     {father:"718-938-6165",mother:"718-541-6930",home:"718-388-3115",bestContact:"Both",preferredTime:""},
-  "Horowitz Chaim":       {father:"917-882-6228",mother:"",home:"718-435-5142",bestContact:"Father",preferredTime:""},
-  "Huss Eliyahu Dov":     {father:"",mother:"917-749-8111",home:"",bestContact:"Mother",preferredTime:""},
-  "Jeremias Joseph":      {father:"518-641-1235",mother:"718-576-0980",home:"718-855-9596",bestContact:"Both",preferredTime:""},
-  "Kanner Yehudah":       {father:"347-486-0542",mother:"347-461-7605",home:"732-341-1490",bestContact:"Both",preferredTime:""},
-  "Kaufman Yisroel Meir": {father:"347-775-7677",mother:"929-289-4432",home:"929-289-4432",bestContact:"Both",preferredTime:""},
-  "Kaufman Shimon":       {father:"347-775-7677",mother:"929-289-4432",home:"929-289-4432",bestContact:"Both",preferredTime:""},
-  "Kish Yitzchok":        {father:"718-757-9385",mother:"917-586-8138",home:"718-438-6712",bestContact:"Dad (Step Dad)",preferredTime:""},
-  "Klein Mendy":          {father:"347-452-7007",mother:"718-208-5298",home:"718-431-2244",bestContact:"Father",preferredTime:""},
-  "Kraminar Leiby":       {father:"917-439-8443",mother:"347-504-3086",home:"718-686-1065",bestContact:"Dad",preferredTime:""},
-  "Kuperman Favi":        {father:"718-781-0607",mother:"718-812-6412",home:"718-437-7627",bestContact:"Mother",preferredTime:""},
-  "Landau Berl":          {father:"347-357-9050",mother:"845-200-8296",home:"845-782-8625",bestContact:"",preferredTime:""},
-  "Levine Reuven":        {father:"347-582-0502",mother:"347-775-4145",home:"718-871-0463",bestContact:"Mom Only",preferredTime:""},
-  "Lichtenstein Abraham": {father:"",mother:"718-986-1321",home:"",bestContact:"Mother",preferredTime:""},
-  "Lowenbraun Eli":       {father:"917-826-2654",mother:"",home:"347-915-2585",bestContact:"Dad (Mom deceased)",preferredTime:""},
-  "Lowenbraun Elimelech": {father:"917-826-2654",mother:"",home:"347-915-2585",bestContact:"Dad (Mom deceased)",preferredTime:""},
-  "Markowitz Cheskel":    {father:"917-577-9109",mother:"646-235-4968",home:"718-797-5798",bestContact:"",preferredTime:""},
-  "Mermelstein Yaakov":   {father:"347-721-7289",mother:"347-415-2369",home:"718-438-5374",bestContact:"Both",preferredTime:""},
-  "Oberlander Eli":       {father:"718-930-9610",mother:"347-585-6126",home:"718-218-7247",bestContact:"Mother",preferredTime:""},
-  "Pollack Smiel":        {father:"347-451-0520",mother:"347-898-7818",home:"718-599-1163",bestContact:"Father",preferredTime:""},
-  "Pollak Shmuel (2)":    {father:"917-697-7940",mother:"929-417-0091",home:"718-599-0030",bestContact:"Dad",preferredTime:""},
-  "Pollack Hershy":       {father:"347-486-2555",mother:"347-633-4745",home:"718-387-0565",bestContact:"Dad",preferredTime:""},
-  "Prero Solomon":        {father:"917-683-7594",mother:"347-684-4000",home:"718-686-1781",bestContact:"Both",preferredTime:""},
-  "Prero Shloimy":        {father:"917-683-7594",mother:"347-684-4000",home:"718-686-1781",bestContact:"Both",preferredTime:""},
-  "Reich Avraham Shimon": {father:"",mother:"718-669-5940",home:"718-486-5940",bestContact:"Mother",preferredTime:""},
-  "Reichberg Yizchok":    {father:"718-513-9460",mother:"718-541-8552",home:"347-243-0089",bestContact:"Both",preferredTime:"Afternoon 2pm"},
-  "Reinhold Boruch":      {father:"917-995-2822",mother:"917-968-1936",home:"917-968-1936",bestContact:"Both",preferredTime:""},
-  "Rosinger Mordche":     {father:"718-576-8665",mother:"917-627-0430",home:"718-388-0338",bestContact:"Both",preferredTime:""},
-  "Rosinger Mordechai":   {father:"718-576-8665",mother:"917-627-0430",home:"718-388-0338",bestContact:"Both",preferredTime:""},
-  "Rothstein Mendy":      {father:"718-809-0365",mother:"917-892-2718",home:"718-435-0760",bestContact:"Mother",preferredTime:""},
-  "Salamon Shraga":       {father:"917-569-5878",mother:"917-232-7471",home:"718-963-2618",bestContact:"Father",preferredTime:""},
-  "Schlesinger Avraham":  {father:"718-781-6229",mother:"718-781-6538",home:"718-853-0510",bestContact:"Both",preferredTime:"Morning & Evening"},
-  "Schmeltzer Menashe":   {father:"718-722-1194",mother:"347-351-1691",home:"718-435-8575",bestContact:"",preferredTime:""},
-  "Schnitzler Mordechai": {father:"718-873-6715",mother:"718-757-1928",home:"718-222-8133",bestContact:"Father & Mother",preferredTime:""},
-  "Schwartz Yehudah":     {father:"347-228-1790",mother:"718-812-0961",home:"718-232-1495",bestContact:"Both",preferredTime:""},
-  "Schwartz Joel":        {father:"347-385-2711",mother:"347-946-5284",home:"718-486-5273",bestContact:"Both",preferredTime:"Morning"},
-  "Schwartz Moshe":       {father:"929-289-0472",mother:"929-884-5368",home:"718-435-5321",bestContact:"Mother Only",preferredTime:""},
-  "Schwartz Shimon":      {father:"917-671-7128",mother:"347-423-2755",home:"",bestContact:"Father",preferredTime:""},
-  "Sekula Hersh Meir":    {father:"718-810-2146",mother:"347-661-1875",home:"718-435-2627",bestContact:"Mother",preferredTime:""},
-  "Sekula Hirsch Meir":   {father:"718-810-2146",mother:"347-661-1875",home:"718-435-2627",bestContact:"Mother",preferredTime:""},
-  "Silberman Moishe":     {father:"347-661-1005",mother:"347-729-5718",home:"718-851-8014",bestContact:"Mother",preferredTime:""},
-  "Slomiuc Yehuda":       {father:"718-483-3630",mother:"347-436-6033",home:"718-851-2243",bestContact:"Mother",preferredTime:""},
-  "Sofer Yiddi":          {father:"347-351-8397",mother:"718-851-0891",home:"",bestContact:"",preferredTime:""},
-  "Spitz Moishe":         {father:"347-661-5615",mother:"347-790-2589",home:"718-388-8571",bestContact:"Both",preferredTime:"All day"},
-  "Spitzer Moshe Zev":    {father:"917-684-4087",mother:"347-432-7648",home:"718-851-1628",bestContact:"Both",preferredTime:""},
-  "Stein Isaac":          {father:"917-940-2787",mother:"917-940-2769",home:"718-857-1358",bestContact:"Mom",preferredTime:""},
-  "Steiner Aron":         {father:"845-659-8002",mother:"718-551-5786",home:"732-276-7758",bestContact:"",preferredTime:""},
-  "Stern Shimon":         {father:"845-548-7509",mother:"646-354-8582",home:"718-435-6706",bestContact:"Father",preferredTime:""},
-  "Stern Shulem":         {father:"347-678-1042",mother:"347-423-3471",home:"718-858-2535",bestContact:"Both",preferredTime:""},
-  "Taub Efraim":          {father:"646-573-9374",mother:"718-551-8461",home:"718-935-1891",bestContact:"Both",preferredTime:""},
-  "Teichman Yidel":       {father:"718-213-0744",mother:"347-308-3105",home:"929-625-5567",bestContact:"",preferredTime:""},
-  "Toub Zisman":          {father:"347-512-6483",mother:"347-512-6486",home:"718-851-1851",bestContact:"Mother",preferredTime:"Afternoon"},
-  "Twersky Shia":         {father:"773-339-2375",mother:"929-512-1737",home:"773-861-2509",bestContact:"",preferredTime:""},
-  "Walk Simcha Bimin":    {father:"917-544-3486",mother:"347-374-1276",home:"718-256-3980",bestContact:"Both",preferredTime:""},
-  "Weberman Elimelach":   {father:"",mother:"718-213-6969",home:"",bestContact:"Mother Only",preferredTime:""},
-  "Weberman Elimelech":   {father:"",mother:"718-213-6969",home:"",bestContact:"Mother Only",preferredTime:""},
-  "Weinberger Rafael":    {father:"732-600-0711",mother:"848-210-4474",home:"732-367-6282",bestContact:"Both",preferredTime:""},
-  "Weiss Shimon":         {father:"347-452-7206",mother:"718-619-6664",home:"718-486-5086",bestContact:"Father",preferredTime:"Morning"},
-  "Weiss Aron":           {father:"718-483-0536",mother:"718-757-7068",home:"718-285-4186",bestContact:"",preferredTime:""},
-  "Wigder Matis":         {father:"347-533-2317",mother:"347-461-6449",home:"718-951-4097",bestContact:"Both",preferredTime:""},
-  "Wosner Menachem":      {father:"347-243-0078",mother:"",home:"732-569-6514",bestContact:"Father",preferredTime:""},
+  "Haut Aaron":{father:"347-564-9911",mother:"347-598-6989",home:"347-275-8486",bestContact:"",preferredTime:""},
+  "Heimfeld Avrohom":{father:"347-801-1666",mother:"347-585-1287",home:"718-871-5795",bestContact:"",preferredTime:""},
+  "Herskovic Yanky":{father:"917-796-3798",mother:"347-743-9270",home:"718-599-5291",bestContact:"Both",preferredTime:""},
+  "Hollander Hershy":{father:"718-938-6165",mother:"718-541-6930",home:"718-388-3115",bestContact:"Both",preferredTime:""},
+  "Horowitz Chaim":{father:"917-882-6228",mother:"",home:"718-435-5142",bestContact:"Father",preferredTime:""},
+  "Huss Eliyahu Dov":{father:"",mother:"917-749-8111",home:"",bestContact:"Mother",preferredTime:""},
+  "Jeremias Joseph":{father:"518-641-1235",mother:"718-576-0980",home:"718-855-9596",bestContact:"Both",preferredTime:""},
+  "Kanner Avraham":{father:"347-486-0542",mother:"347-461-7605",home:"732-341-1490",bestContact:"Both",preferredTime:""},
+  "Kaufman Yisroel Meir":{father:"347-775-7677",mother:"929-289-4432",home:"929-289-4432",bestContact:"Both",preferredTime:""},
+  "Kaufman Shimon":{father:"347-775-7677",mother:"929-289-4432",home:"929-289-4432",bestContact:"Both",preferredTime:""},
+  "Kish Yitzchok":{father:"718-757-9385",mother:"917-586-8138",home:"718-438-6712",bestContact:"Dad (Step Dad)",preferredTime:""},
+  "Klein Mendy":{father:"347 452 7007",mother:"718 208 5298",home:"718 431 2244",bestContact:"Father",preferredTime:""},
+  "Kramanier Tzvi":{father:"917-439-8443",mother:"347-504-3086",home:"718-686-1065",bestContact:"Dad",preferredTime:""},
+  "Kupperman Zev":{father:"718-781-0607",mother:"718-812-6412",home:"718-437-7627",bestContact:"Mother",preferredTime:""},
+  "Landau Berl":{father:"347-357-9050",mother:"845-200-8296",home:"845-782-8625",bestContact:"",preferredTime:""},
+  "Levine Reuven":{father:"347-582-0502",mother:"347-775-4145",home:"7188710463",bestContact:"Mom Only",preferredTime:""},
+  "Lichtenstein Abraham":{father:"",mother:"718-986-1321",home:"",bestContact:"Mother",preferredTime:""},
+  "Lowenbraun Elimelech":{father:"917-826-2654",mother:"",home:"3479152585",bestContact:"Dad (Mom deceased)",preferredTime:""},
+  "Markowitz Cheskel":{father:"917-577-9109",mother:"646-235-4968",home:"718-797-5798",bestContact:"",preferredTime:""},
+  "Mermelstein Yaakov":{father:"347-721-7289",mother:"347-415-2369",home:"718-438-5374",bestContact:"Both",preferredTime:""},
+  "Oberlander Eli":{father:"718-930-9610",mother:"347-585-6126",home:"718-218-7247",bestContact:"Mother",preferredTime:""},
+  "Pollak Shmiel":{father:"347-451-0520",mother:"347-898-7818",home:"718-599-1163",bestContact:"father",preferredTime:""},
+  "Pollak Shmuel":{father:"917-697-7940",mother:"929-417-0091",home:"718-599-0030",bestContact:"Dad",preferredTime:""},
+  "Pollak Hershel":{father:"347-486-2555",mother:"347-633-4745",home:"718-387-0565",bestContact:"Dad",preferredTime:""},
+  "Prero Solomon/ Shlomy":{father:"917-683-7594",mother:"347-684-4000",home:"718-686-1781",bestContact:"Both",preferredTime:""},
+  "Reich Avraham Shimon":{father:"",mother:"718-669-5940/917-618-2121",home:"718-486-5940",bestContact:"Mother",preferredTime:""},
+  "Reichberg Yitzchok":{father:"718-513-9460",mother:"718 541 8552",home:"347 243 0089",bestContact:"Both",preferredTime:"afternoon 2pm"},
+  "Reinhold Boruch":{father:"917-995-2822",mother:"917-968-1936",home:"917-968-1936",bestContact:"Both",preferredTime:""},
+  "Rosinger Mordche":{father:"718-576-8665",mother:"917-627-0430",home:"718-388-0338",bestContact:"Both",preferredTime:""},
+  "Rothstein Mendy":{father:"718-809-0365",mother:"917-892-2718",home:"718-435-0760",bestContact:"Mother",preferredTime:""},
+  "Salamon Jacob":{father:"347-728-8854",mother:"347-512-9793",home:"718-963-9082",bestContact:"Mother",preferredTime:""},
+  "Salamon Shraga":{father:"917-569-5878",mother:"917-232-7471",home:"718-963-2618",bestContact:"Father",preferredTime:""},
+  "Schlesinger Avraham":{father:"718-781-6229",mother:"718-781-6538",home:"718-853-0510",bestContact:"Both",preferredTime:"morning & evening"},
+  "Schmeltzer Menashe":{father:"718-722-1194",mother:"347-351-1691",home:"718-435-8575",bestContact:"",preferredTime:""},
+  "Schnitzler Motty":{father:"718-873-6715",mother:"718-757-1928",home:"718-222-8133",bestContact:"Father & Mother",preferredTime:""},
+  "Schwartz Yehudah":{father:"347-228-1790",mother:"718-812-0961",home:"718-232-1495",bestContact:"Both",preferredTime:""},
+  "Schwartz Joel":{father:"347-385-2711",mother:"347-946-5284",home:"718-486-5273",bestContact:"Both",preferredTime:"morning"},
+  "Schwartz Moshe":{father:"929-289-0472",mother:"929-884-5368",home:"718-435-5321",bestContact:"Mother Only",preferredTime:""},
+  "Schwartz Shimon":{father:"917-671-7128",mother:"347-423-2755",home:"",bestContact:"Father",preferredTime:""},
+  "Sekula Hersh":{father:"718-810-2146",mother:"347-661-1875",home:"718-435-2627",bestContact:"Mother",preferredTime:""},
+  "Silberman Moshe":{father:"347-661-1005",mother:"347-729-5718",home:"718 851 8014",bestContact:"Mother",preferredTime:""},
+  "Slomiuc Yehuda":{father:"718-483-3630",mother:"347-436-6033",home:"718-851-2243",bestContact:"Mother",preferredTime:""},
+  "Soifer Yehuda":{father:"347-351-8397",mother:"718-851-0891",home:"",bestContact:"",preferredTime:""},
+  "Spitz Moshe":{father:"347-661-5615",mother:"347-790-2589",home:"718-388-8571",bestContact:"Both",preferredTime:"all day"},
+  "Spitzer Moshe Zev":{father:"917-684-4087",mother:"347-432-7648",home:"718-851-1628",bestContact:"Both",preferredTime:""},
+  "Stein Isaac":{father:"917-940-2787",mother:"917-940-2769",home:"718-857-1358",bestContact:"Mom",preferredTime:""},
+  "Steiner Aaron":{father:"845-659-8002",mother:"718-551-5786",home:"732-276-7758",bestContact:"",preferredTime:""},
+  "Stern Shimon":{father:"845-548-7509",mother:"646-354-8582",home:"718-435-6706",bestContact:"Father",preferredTime:""},
+  "Stern Shulem":{father:"347-678-1042",mother:"347-423-3471",home:"718-858-2535",bestContact:"Both",preferredTime:""},
+  "Taub Efraim":{father:"646-573-9374",mother:"718-551-8461",home:"718-935-1891",bestContact:"Both",preferredTime:""},
+  "Teichman Yidel":{father:"718-213-0744",mother:"347-308-3105",home:"929-625-5567",bestContact:"",preferredTime:""},
+  "Toub Zisman":{father:"347-512-6483",mother:"347-512-6486",home:"718-851-1851",bestContact:"Mother",preferredTime:"Afternoon"},
+  "Twerski Joshua":{father:"773-339-2375",mother:"929-512-1737",home:"773-861-2509",bestContact:"",preferredTime:""},
+  "Wallk Simcha Binim":{father:"917-544-3486",mother:"347-374-1276",home:"718-256-3980",bestContact:"Both",preferredTime:""},
+  "Weberman Elimelech":{father:"",mother:"718-213-6969",home:"",bestContact:"Mother Only",preferredTime:""},
+  "Weinberg":{father:"",mother:"",home:"",bestContact:"",preferredTime:""},
+  "Weinberger Rafael":{father:"732-600-0711",mother:"848-210-4474",home:"732-367-6282",bestContact:"Both",preferredTime:""},
+  "Weiss Shimon":{father:"347 452 7206",mother:"718 619 6664",home:"718 486 5086",bestContact:"Father",preferredTime:"morning"},
+  "Weiss Aaron":{father:"718-483-0536",mother:"718-757-7068",home:"718-285-4186",bestContact:"",preferredTime:""},
+  "Weissman Joseph":{father:"",mother:"",home:"",bestContact:"",preferredTime:""},
+  "Wigder Matis":{father:"347-533-2317",mother:"347-461-6449",home:"718-951-4097",bestContact:"Both",preferredTime:""},
+  "Wosner Menachem":{father:"347-243-0078",mother:"",home:"732-569-6514",bestContact:"Father",preferredTime:""}
 };
 const PROVIDER_MANDATES = {
-  'Goldberger - SLP': ["Briskman Isaac","Gestetner Abraham","Gluck Aron","Kaufman Yisroel Meir","Landau Berl","Lichtenstein Abraham","Markowitz Cheskel","Rosinger Mordechai","Rothstein Mendy","Schwartz Yehudah","Silberman Moishe","Toub Zisman","Walk Simcha Bimin","Wigder Matis"],
-  'Friedman - SLP':   ["Braver Naftula","Brull Yeshoshua","Fisher Zev","Fogel Efraim","Freund Eli","Gestetner Shloime","Gross Israel","Huss Eliyahu Dov","Kanner Yehudah","Kaufman Shimon","Kuperman Favi","Pollack Smiel","Prero Shloimy","Salamon Shraga","Schmeltzer Menashe","Schnitzler Mordechai","Schwartz Moshe","Sekula Hirsch Meir","Weinberger Rafael"],
-  'Ziegler - SLP':    ["Abramowitz Nechemia","Briskman David","Hershkowitz Yanky","Horowitz Chaim","Pollack Hershy","Reich Avraham Shimon","Schwartz Joel","Weiss Aron","Wosner Menachem"],
-  'Lebowitz - SLP':   ["Abramowits Shimon","Babad Joseph","Brown Meir","Fisher Zev","Freund Eli","Gottlieb Shulem","Heimfeld Avrohom","Klein Mendy","Markowitz Cheskel","Oberlander Eli","Schwartz Moshe","Sofer Yiddi","Spitz Moishe","Steiner Aron","Taub Efraim","Weiss Shimon","Wigder Matis","Wosner Menachem"],
-  'Mayer - PT':       [],
-  'Schachter - PT':   ["Bergman Moishe","Blum Nechemia","Briskman Shimon","Brown Meir","Brull Yeshoshua","Epstein Isaac","Feigenbaum Shalom","Fisch Moshe","Freund Eli","Gottlieb Shulem","Halberstam Hersh Meilech","Klein Mendy","Kraminar Leiby","Levine Reuven","Markowitz Cheskel","Mermelstein Yaakov","Oberlander Eli","Pollack Hershy","Pollak Shmuel (2)","Reich Avraham Shimon","Reinhold Boruch","Rosinger Mordechai","Salamon Shraga","Schwartz Moshe","Schwartz Shimon","Sekula Hirsch Meir","Silberman Moishe","Spitz Moishe","Spitzer Moshe Zev","Stern Shimon","Stern Shulem","Toub Zisman","Twersky Shia","Walk Simcha Bimin","Weiss Shimon","Wigder Matis"],
-  'Malks - OT':       ["Briskman Shimon","Feigenbaum Shalom","Flam Pinchas","Fogel Efraim","Gestetner Efraim","Halberstam Hersh Meilech","Levine Reuven","Oberlander Eli","Pollak Shmuel (2)","Schlesinger Avraham","Spitzer Moshe Zev","Teichman Yidel","Toub Zisman","Twersky Shia","Walk Simcha Bimin","Weberman Elimelach","Weinberger Rafael","Wigder Matis"],
-  'Dyckman - OT':     ["Abramowitz Nechemia","Bergman Moishe","Blum Nechemia","Braver Naftula","Brown Meir","Brull Yeshoshua","Epstein Isaac","Fisch Moshe","Freund Eli","Goldhirsch Avrohom Simcha","Gottlieb Shulem","Horowitz Chaim","Kaufman Yisroel Meir","Kaufman Shimon","Kuperman Favi","Lichtenstein Abraham","Markowitz Cheskel","Pollack Hershy","Prero Shloimy","Reich Avraham Shimon","Reinhold Boruch","Rosinger Mordechai","Rothstein Mendy","Schwartz Moshe","Schwartz Shimon","Silberman Moishe","Sofer Yiddi","Spitz Moishe","Stern Shulem","Weiss Shimon"],
-  'Fischer - CO':     ["Axelrod Levi Yitzchak","Blum Nechemia","Brauner Bentzion","Braver Naftula","Briskman David","Brull Yeshoshua","Flam Pinchas","Gestetner Abraham","Goldhirsch Avrohom Simcha","Hershkowitz Yanky","Huss Eliyahu Dov","Jeremias Joseph","Kanner Yehudah","Kish Yitzchok","Landau Berl","Mermelstein Yaakov","Prero Shloimy","Rothstein Mendy","Schlesinger Avraham","Schnitzler Mordechai","Schwartz Yehudah","Weberman Elimelach"],
-  'Kerenkraut - CO':  ["Abramowits Shimon","Babad Joseph","Brown Meir","Fisher Zev","Freund Eli","Gottlieb Shulem","Heimfeld Avrohom","Klein Mendy","Markowitz Cheskel","Oberlander Eli","Schwartz Moshe","Sofer Yiddi","Spitz Moishe","Steiner Aron","Taub Efraim","Weiss Shimon","Wigder Matis","Wosner Menachem"],
-  'Werner - LMSW':    ["Briskman Shimon","Fogel Efraim","Goldberger Eliyahu","Halberstam Hersh Meilech","Kaufman Yisroel Meir","Kuperman Favi","Pollack Hershy","Reichberg Yizchok","Reinhold Boruch","Rosinger Mordechai","Schwartz Joel","Sekula Hirsch Meir","Silberman Moishe","Stern Shulem","Toub Zisman","Walk Simcha Bimin","Weiss Aron"],
-  'Weber - LMSW':     ["Abramowitz Nechemia","Epstein Isaac","Feigenbaum Shalom","Fisch Moshe","Gestetner Shloime","Gluck Aron","Gross Israel","Lichtenstein Abraham","Pollak Shmuel (2)","Reich Avraham Shimon","Salamon Shraga","Schmeltzer Menashe","Stern Shimon"],
+  "Goldberger - SLP":["Rothstein Mendy","Markowitz Cheskel","Lichtenstein Abraham","Kaufman Yisroel Meir","Rosinger Mordechai","Silberman Moishe","Wigder Matis","Toub Zisman","Walk Simcha Bimin","Briskman Isaac","Gestetner Abraham","Landau Berl","Schwartz Yehudah","Gluck Aron"],
+  "Friedman - SLP":["Kaufman, Shimmy","Prero, Shloimy","Braver, Naftuli Hersk","Brull Yeshoshua","Freund Eli","Schwartz Moshe","Kuperman Favi","Weinberger Rafael","Stein, Levi Yitzchok","Fogel Efraim","Huss Eliyahu Dov","Kanner Yehudah","Schnitzler, Mordechai","Fisher Zev","Gestetner Shloime","Gross Israel","Salamon Shraga","Schmeltzer Menashe","Sekula Hirsch Meir","Pollack Smiel"],
+  "Ziegler - SLP":["Horowitz Chaim","Reich Avraham Shimon","Abramowitz Nechemia","Pollack Hershy","Briskman David","Hershkowitz Yanky","Weissman Yosef","Wosner Menachem","Weiss Aron","Schwartz Joel"],
+  "Lebowitz - SLP":["Blum Nechemiah","Goldhirsch Avrohom Simcha","Schwartz Shimon","Weiss Shimon","Spitz Moishe","Brown Meir","Gottlieb Shulem","Sofer Yiddi","Bergman Moishe","Epstein Isaac","Fisch, Moshe","Reinhold, Baruch","Stern Shulem","Gestetner Efraim","Twersky Shia","Levine, Reuven","Teichman Yidel","Schlesinger Avraham","Weberman Elimelach","Flam Pinchas","Oberlander Eli","Feigenbaum Shalom","Pollak Shmuel (2)","Briskman Shimon","Halberstam Hersh Meilech","Spitzer, Moshe Zev","Kraminar Leiby","Lowenbraun, Eli","Slomiuc Yehuda","Weissman Yitzchok","Axelrod, Levi Yitzchok","Jeremias Joseph","Brauner Benzion","Mermelstein Yaakov","Kish, Yitzchok","Heimfeld Avrohom","Abramowits Shimon","Babad Joseph","Klein Mendy","Steiner Aron","Taub Efraim","Stern Shimon","Abramson, Yochonon","Goldberger Eliyahu","Ehrenfeld Usher"],
+  "Mayer - PT":[],
+  "Schachter - PT":["Brull Yeshoshua","Blum Nechemiah","Schwartz Shimon","Freund Eli","Schwartz Moshe","Markowitz Cheskel","Weiss Shimon","Spitz Moishe","Brown Meir","Gottlieb Shulem","Bergman Moishe","Epstein Isaac","Fisch, Moshe","Reich Avraham Shimon","Reinhold, Baruch","Pollack Hershy","Rosinger Mordechai","Silberman Moishe","Stern Shulem","Twersky Shia","Levine, Reuven","Stein, Levi Yitzchok","Wigder Matis","Oberlander Eli","Feigenbaum Shalom","Pollak Shmuel (2)","Toub Zisman","Briskman Shimon","Walk Simcha Bimin","Halberstam Hersh Meilech","Spitzer, Moshe Zev","Kraminar Leiby","Mermelstein Yaakov","Klein Mendy","Salamon Shraga","Stern Shimon","Sekula Hirsch Meir"],
+  "Malks - OT":["Weinberger Rafael","Gestetner Efraim","Twersky Shia","Levine, Reuven","Teichman Yidel","Schlesinger Avraham","Weberman Elimelach","Flam Pinchas","Stein, Levi Yitzchok","Wigder Matis","Oberlander Eli","Feigenbaum Shalom","Pollak Shmuel (2)","Fogel Efraim","Toub Zisman","Briskman Shimon","Walk Simcha Bimin","Halberstam Hersh Meilech","Spitzer, Moshe Zev"],
+  "Dyckman - OT":["Kaufman, Shimmy","Horowitz Chaim","Prero, Shloimy","Braver, Naftuli Hersk","Brull Yeshoshua","Rothstein Mendy","Blum Nechemiah","Goldhirsch Avrohom Simcha","Schwartz Shimon","Freund Eli","Schwartz Moshe","Markowitz Cheskel","Weiss Shimon","Spitz Moishe","Brown Meir","Gottlieb Shulem","Sofer Yiddi","Lichtenstein Abraham","Bergman Moishe","Epstein Isaac","Fisch, Moshe","Reich Avraham Shimon","Abramowitz Nechemia","Kuperman Favi","Kaufman Yisroel Meir","Reinhold, Baruch","Pollack Hershy","Rosinger Mordechai","Silberman Moishe","Stern Shulem"],
+  "Fischer - CO":["Prero, Shloimy","Braver, Naftuli Hersk","Brull Yeshoshua","Rothstein Mendy","Blum Nechemiah","Goldhirsch Avrohom Simcha","Schwartz Shimon","Schlesinger Avraham","Weberman Elimelach","Flam Pinchas","Huss Eliyahu Dov","Kanner Yehudah","Gestetner Abraham","Landau Berl","Weissman Yitzchok","Axelrod, Levi Yitzchok","Jeremias Joseph","Brauner Benzion","Mermelstein Yaakov","Briskman David","Hershkowitz Yanky","Schnitzler, Mordechai","Schwartz Yehudah","Kish, Yitzchok"],
+  "Kerenkraut - CO":["Freund Eli","Schwartz Moshe","Markowitz Cheskel","Weiss Shimon","Spitz Moishe","Brown Meir","Gottlieb Shulem","Sofer Yiddi","Stein, Levi Yitzchok","Wigder Matis","Oberlander Eli","Fisher Zev","Heimfeld Avrohom","Abramowits Shimon","Babad Joseph","Klein Mendy","Steiner Aron","Taub Efraim","Weissman Yosef","Wosner Menachem"],
+  "Werner - LMSW":["Kuperman Favi","Kaufman Yisroel Meir","Reinhold, Baruch","Pollack Hershy","Rosinger Mordechai","Silberman Moishe","Stern Shulem","Fogel Efraim","Toub Zisman","Briskman Shimon","Walk Simcha Bimin","Halberstam Hersh Meilech","Spitzer, Moshe Zev","Weiss Aron","Reichberg Yizchok","Sekula Hirsch Meir","Goldberger Eliyahu","Ehrenfeld Usher","Schwartz Joel"],
+  "Weber - LMSW":["Lichtenstein Abraham","Bergman Moishe","Epstein Isaac","Fisch, Moshe","Reich Avraham Shimon","Abramowitz Nechemia","Feigenbaum Shalom","Pollak Shmuel (2)","Gestetner Shloime","Gross Israel","Salamon Shraga","Schmeltzer Menashe","Gluck Aron","Stern Shimon","Abramson, Yochonon"]
 };
 function getStudentContact(name){if(STUDENT_CONTACTS[name])return STUDENT_CONTACTS[name];const nl=name.toLowerCase().replace(/\s+/g,' ').trim();for(const k in STUDENT_CONTACTS){if(k.toLowerCase().replace(/\s+/g,' ').trim()===nl)return STUDENT_CONTACTS[k];}const nw=nl.split(' ').filter(Boolean);for(const k in STUDENT_CONTACTS){const kw=k.toLowerCase().replace(/\s+/g,' ').trim().split(' ').filter(Boolean);const m=nw.filter(w=>kw.some(kk=>kk===w));if(m.length>=2&&m.length>=Math.min(2,kw.length))return STUDENT_CONTACTS[k];}return null;}
 
@@ -731,8 +733,8 @@ function showProviderView(provider,tab){
     document.getElementById('adminView').style.display='none';
     const pSafe=provider.replace(/'/g,"\\'");
     let html='<div class="prov-tabs no-print">'
-      +'<button class="prov-tab" onclick="showProviderView(\''+pSafe+'\',\'schedule\')">&#128203; Schedule</button>'
-      +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe+'\',\'calls\')">&#128222; Parent Calls</button>'
+      +'<button class="prov-tab" onclick="showProviderView(\''+pSafe+'\',\'schedule\')">Schedule</button>'
+      +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe+'\',\'calls\')">Parent Calls</button>'
       +'</div>';
     html+=renderParentCallsTab(provider);
     container.innerHTML=html;
@@ -788,8 +790,8 @@ function showProviderView(provider,tab){
   });
   const pSafe2=provider.replace(/'/g,"\\'");
   container.innerHTML='<div class="prov-tabs no-print">'
-    +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe2+'\',\'schedule\')">&#128203; Schedule</button>'
-    +'<button class="prov-tab" onclick="showProviderView(\''+pSafe2+'\',\'calls\')">&#128222; Parent Calls</button>'
+    +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe2+'\',\'schedule\')">Schedule</button>'
+    +'<button class="prov-tab" onclick="showProviderView(\''+pSafe2+'\',\'calls\')">Parent Calls</button>'
     +'</div>'+html;
 }
 
@@ -922,11 +924,11 @@ function setCallNote(provider, student, note){
 }
 
 const CALL_OPTS=[
-  {key:'talked',  icon:'✅', label:'Talked',         cls:'cs-talked'},
-  {key:'nopickup',icon:'📵', label:'No Answer',      cls:'cs-nopickup'},
-  {key:'voicemail',icon:'📬',label:'Left Voicemail', cls:'cs-vm'},
-  {key:'multitried',icon:'🔄',label:'Tried Multiple',cls:'cs-multi'},
-  {key:'callback',icon:'⏰', label:'Will Call Back', cls:'cs-callback'},
+  {key:'talked',   icon:'', label:'Talked',          cls:'cs-talked'},
+  {key:'nopickup', icon:'', label:'No Answer',        cls:'cs-nopickup'},
+  {key:'voicemail',icon:'', label:'Voicemail',        cls:'cs-vm'},
+  {key:'multitried',icon:'',label:'Tried Multiple',   cls:'cs-multi'},
+  {key:'callback', icon:'', label:'Will Call Back',   cls:'cs-callback'},
 ];
 
 function callCardId(student){ return 'cc_'+makeId('',0,student); }
@@ -958,7 +960,7 @@ function renderParentCallsTab(provider){
   allStudents.sort();
   var talked=0;
   allStudents.forEach(function(s){if(getCallEntry(provider,s).status==='talked')talked++;});
-  var html='<div class="call-log-bar"><div class="call-log-title">&#128222; Parent Call Log</div>'
+  var html='<div class="call-log-bar"><div class="call-log-title">Parent Call Log</div>'
     +'<div class="call-summary" id="callSummary">'+talked+' / '+allStudents.length+' contacted</div></div>';
   allStudents.forEach(function(student){
     var entry=getCallEntry(provider,student);
@@ -968,15 +970,15 @@ function renderParentCallsTab(provider){
     var isUnscheduled=!scheduledSet.has(student);
     html+='<div class="call-card'+(opt?' '+opt.cls:'')+'" id="'+callCardId(student)+'">';
     html+='<div class="call-card-name">'+student;
-    if(isUnscheduled)html+=' <span class="badge-unscheduled">&#128337; Not yet scheduled</span>';
+    if(isUnscheduled)html+=' <span class="badge-unscheduled">Not yet scheduled</span>';
     html+='</div>';
     if(contact){
       html+='<div class="call-contacts-row">';
-      if(contact.father){var fd=contact.father.replace(/[^0-9+]/g,'');html+='<a class="call-num father" href="tel:'+fd+'">&#128104; '+contact.father+'</a>';}
-      if(contact.mother){var md=contact.mother.replace(/[^0-9+]/g,'');html+='<a class="call-num mother" href="tel:'+md+'">&#128105; '+contact.mother+'</a>';}
+      if(contact.father){var fd=contact.father.replace(/[^0-9+]/g,'');html+='<a class="call-num father" href="tel:'+fd+'">F: '+contact.father+'</a>';}
+      if(contact.mother){var md=contact.mother.replace(/[^0-9+]/g,'');html+='<a class="call-num mother" href="tel:'+md+'">M: '+contact.mother+'</a>';}
       var bc=contact.bestContact;
-      if(bc&&bc!=='Both'&&bc!=='')html+='<span class="best-contact-tag">&#9733; '+bc+'</span>';
-      if(contact.preferredTime)html+='<span class="pref-time-tag">&#128336; '+contact.preferredTime+'</span>';
+      if(bc&&bc!=='Both'&&bc!=='')html+='<span class="best-contact-tag">'+bc+'</span>';
+      if(contact.preferredTime)html+='<span class="pref-time-tag">'+contact.preferredTime+'</span>';
       html+='</div>';
     } else {
       html+='<div class="call-contacts-row"><span style="color:#a0aec0;font-size:0.78rem;">No contact info on file</span></div>';
@@ -988,7 +990,7 @@ function renderParentCallsTab(provider){
     });
     html+='</div>';
     var noteId='cnote_'+makeId('',0,student);
-    html+='<textarea class="call-note-input" id="'+noteId+'" placeholder="&#128221; Notes..." onchange="setCallNote(\''+pE+'\',\''+sE+'\',this.value)">'  +((entry.note||'').replace(/</g,'&lt;'))+'</textarea>';
+    html+='<textarea class="call-note-input" id="'+noteId+'" placeholder="Notes..." onchange="setCallNote(\''+pE+'\',\''+sE+'\',this.value)">'  +((entry.note||'').replace(/</g,'&lt;'))+'</textarea>';
     html+='</div>';
   });
   return html;
