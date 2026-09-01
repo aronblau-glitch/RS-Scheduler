@@ -306,3 +306,13 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
 /* ── New badge types ─────────────────────────────────────────────── */
 .badge-pt   { background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px; font-size:0.72rem; font-weight:700; }
 .badge-lmsw { background:#fce7f3; color:#97266d; border-radius:4px; padding:1px 5px; font-size:0.72rem; font-weight:700; }
+
+/* ── Unscheduled & preferred-time badges ────────────────────────── */
+.badge-unscheduled {
+  font-size:0.7rem; background:#fff3cd; color:#856404; border-radius:4px;
+  padding:2px 6px; font-weight:600; margin-left:6px;
+}
+.pref-time-tag {
+  font-size:0.72rem; background:#e9f5ff; color:#1a6496; border-radius:4px;
+  padding:2px 6px; font-weight:600;
+}
