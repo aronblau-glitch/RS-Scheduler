@@ -322,7 +322,6 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <h1>RS Schedule 2026&#8202;&#8211;&#8202;27</h1>
@@ -330,7 +329,7 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
     <div id="loginError" class="login-error">Incorrect password. Please try again.</div>
     <label for="loginSelect">Select your name</label>
     <select id="loginSelect">
-      <option value="">— Choose —</option>
+      <option value="">&#8212; Choose &#8212;</option>
       <option value="Goldberger - SLP">Goldberger - SLP</option>
       <option value="Friedman - SLP">Friedman - SLP</option>
       <option value="Ziegler - SLP">Ziegler - SLP</option>
@@ -356,7 +355,6 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
   </div>
 </div>
 
-<!-- APP SCREEN -->
 <div id="appScreen" style="display:none;">
   <header class="no-print">
     <h1>RS Schedule &#8212; 26-27</h1>
@@ -365,13 +363,11 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
       <button class="btn-logout" onclick="doLogout()">Log out</button>
     </div>
   </header>
-
   <div id="providerView" style="display:none;"></div>
-  <div id="adminView"   style="display:none;"></div>
-  <div id="officeView"  style="display:none;"></div>
+  <div id="adminView"    style="display:none;"></div>
+  <div id="officeView"   style="display:none;"></div>
 </div>
 
-<!-- SEND EMAIL MODAL -->
 <div id="sendModal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
@@ -391,7 +387,6 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
   </div>
 </div>
 
-<!-- INSTALL BANNER -->
 <div class="install-banner" id="installBanner">
   <p><strong>Add to Home Screen</strong>Install for quick access</p>
   <button class="btn-install" id="installBtn">Install</button>
@@ -725,16 +720,16 @@ function showProviderView(provider,tab){
     const wk=getWeekKey(), pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
     container.style.display='block';
     document.getElementById('adminView').style.display='none';
+    const pSafe=provider.replace(/'/g,"\\'");
     let html='<div class="prov-tabs no-print">'
-      +'<button class="prov-tab" onclick="showProviderView(''+provider.replace(/'/g,"\'")+'','schedule')">&#128203; Schedule</button>'
-      +'<button class="prov-tab active" onclick="showProviderView(''+provider.replace(/'/g,"\'")+'','calls')">&#128222; Parent Calls</button>'
+      +'<button class="prov-tab" onclick="showProviderView(\''+pSafe+'\',\'schedule\')">&#128203; Schedule</button>'
+      +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe+'\',\'calls\')">&#128222; Parent Calls</button>'
       +'</div>';
     html+=renderParentCallsTab(provider);
     container.innerHTML=html;
     return;
   }
   const wk=getWeekKey(), pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
-  const container=document.getElementById('providerView');
   container.style.display='block';
   document.getElementById('adminView').style.display='none';
   const byDay={};DAYS_ORDER.forEach(d=>byDay[d]=[]);
@@ -782,9 +777,10 @@ function showProviderView(provider,tab){
     html+='<div class="save-send-bar no-print"><button class="btn-save-send" onclick="openSendModal(\''+provider.replace(/'/g,"\\'")+'\',\''+day+'\')">&#128228; Save &amp; Send &#8212; '+day+'</button></div>';
     html+='</div>';
   });
+  const pSafe2=provider.replace(/'/g,"\\'");
   container.innerHTML='<div class="prov-tabs no-print">'
-    +'<button class="prov-tab active" onclick="showProviderView(\''+provider.replace(/\'/g,\"\\\'\")+'\',\'schedule\')">&#128203; Schedule</button>'
-    +'<button class="prov-tab" onclick="showProviderView(\''+provider.replace(/\'/g,\"\\\'\")+'\',\'calls\')">&#128222; Parent Calls</button>'
+    +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe2+'\',\'schedule\')">&#128203; Schedule</button>'
+    +'<button class="prov-tab" onclick="showProviderView(\''+pSafe2+'\',\'calls\')">&#128222; Parent Calls</button>'
     +'</div>'+html;
 }
 
@@ -972,11 +968,11 @@ function renderParentCallsTab(provider){
     html+='<div class="call-status-btns">';
     CALL_OPTS.forEach(o=>{
       const active=entry.status===o.key?' active':'';
-      html+='<button class="call-status-btn'+active+'" onclick="setCallStatus(''+pE+'',''+sE+'',''+o.key+'')">'+o.icon+' '+o.label+'</button>';
+      html+='<button class="call-status-btn opt-'+o.key+active+'" onclick="setCallStatus(\''+pE+'\',\''+sE+'\',\''+o.key+'\')">'+o.icon+' '+o.label+'</button>';
     });
     html+='</div>';
     const noteId='cnote_'+makeId('',0,student);
-    html+='<textarea class="call-note-input" id="'+noteId+'" placeholder="&#128221; Notes..." onchange="setCallNote(''+pE+'',''+sE+'',this.value)">'+( (entry.note||'').replace(/</g,'&lt;') )+'</textarea>';
+    html+='<textarea class="call-note-input" id="'+noteId+'" placeholder="&#128221; Notes..." onchange="setCallNote(\''+pE+'\',\''+sE+'\',this.value)">'+( (entry.note||'').replace(/</g,'&lt;') )+'</textarea>';
     html+='</div>';
   });
   return html;

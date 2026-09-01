@@ -323,16 +323,16 @@ function showProviderView(provider,tab){
     const wk=getWeekKey(), pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
     container.style.display='block';
     document.getElementById('adminView').style.display='none';
+    const pSafe=provider.replace(/'/g,"\\'");
     let html='<div class="prov-tabs no-print">'
-      +'<button class="prov-tab" onclick="showProviderView(''+provider.replace(/'/g,"\'")+'','schedule')">&#128203; Schedule</button>'
-      +'<button class="prov-tab active" onclick="showProviderView(''+provider.replace(/'/g,"\'")+'','calls')">&#128222; Parent Calls</button>'
+      +'<button class="prov-tab" onclick="showProviderView(\''+pSafe+'\',\'schedule\')">&#128203; Schedule</button>'
+      +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe+'\',\'calls\')">&#128222; Parent Calls</button>'
       +'</div>';
     html+=renderParentCallsTab(provider);
     container.innerHTML=html;
     return;
   }
   const wk=getWeekKey(), pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
-  const container=document.getElementById('providerView');
   container.style.display='block';
   document.getElementById('adminView').style.display='none';
   const byDay={};DAYS_ORDER.forEach(d=>byDay[d]=[]);
@@ -380,9 +380,10 @@ function showProviderView(provider,tab){
     html+='<div class="save-send-bar no-print"><button class="btn-save-send" onclick="openSendModal(\''+provider.replace(/'/g,"\\'")+'\',\''+day+'\')">&#128228; Save &amp; Send &#8212; '+day+'</button></div>';
     html+='</div>';
   });
+  const pSafe2=provider.replace(/'/g,"\\'");
   container.innerHTML='<div class="prov-tabs no-print">'
-    +'<button class="prov-tab active" onclick="showProviderView(\''+provider.replace(/\'/g,\"\\\'\")+'\',\'schedule\')">&#128203; Schedule</button>'
-    +'<button class="prov-tab" onclick="showProviderView(\''+provider.replace(/\'/g,\"\\\'\")+'\',\'calls\')">&#128222; Parent Calls</button>'
+    +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe2+'\',\'schedule\')">&#128203; Schedule</button>'
+    +'<button class="prov-tab" onclick="showProviderView(\''+pSafe2+'\',\'calls\')">&#128222; Parent Calls</button>'
     +'</div>'+html;
 }
 
@@ -570,11 +571,11 @@ function renderParentCallsTab(provider){
     html+='<div class="call-status-btns">';
     CALL_OPTS.forEach(o=>{
       const active=entry.status===o.key?' active':'';
-      html+='<button class="call-status-btn'+active+'" onclick="setCallStatus(''+pE+'',''+sE+'',''+o.key+'')">'+o.icon+' '+o.label+'</button>';
+      html+='<button class="call-status-btn opt-'+o.key+active+'" onclick="setCallStatus(\''+pE+'\',\''+sE+'\',\''+o.key+'\')">'+o.icon+' '+o.label+'</button>';
     });
     html+='</div>';
     const noteId='cnote_'+makeId('',0,student);
-    html+='<textarea class="call-note-input" id="'+noteId+'" placeholder="&#128221; Notes..." onchange="setCallNote(''+pE+'',''+sE+'',this.value)">'+( (entry.note||'').replace(/</g,'&lt;') )+'</textarea>';
+    html+='<textarea class="call-note-input" id="'+noteId+'" placeholder="&#128221; Notes..." onchange="setCallNote(\''+pE+'\',\''+sE+'\',this.value)">'+( (entry.note||'').replace(/</g,'&lt;') )+'</textarea>';
     html+='</div>';
   });
   return html;
