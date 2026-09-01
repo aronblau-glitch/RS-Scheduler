@@ -1,20 +1,20 @@
 
 const PASSWORDS = {
   'admin': 'admin123',
-  'office': 'office123',
-  'Goldberger - SLP': 'slp1',
-  'Friedman - SLP':   'slp2',
-  'Ziegler - SLP':    'slp3',
-  'Horowitz - SLP':   'slp4',
-  'Herbst - SLP':     'slp5',
-  'Schachter - PT':   'pt1',
-  'Malks - OT':       'ot1',
-  'Dyckman - OT':     'ot2',
-  'Fischer - CO':     'co1',
-  'Kerenkraut - CO':  'co2',
-  'Werner - CO':      'co3',
-  'Weber - CO':       'co4',
-  'Fayersteyn - CO':  'co5',
+  'office': 'offi1',
+  'Goldberger - SLP': 'gold1',
+  'Friedman - SLP':   'frie1',
+  'Ziegler - SLP':    'zieg1',
+  'Horowitz - SLP':   'horo1',
+  'Herbst - SLP':     'herb1',
+  'Schachter - PT':   'scha1',
+  'Malks - OT':       'malk1',
+  'Dyckman - OT':     'dyck1',
+  'Fischer - CO':     'fisc1',
+  'Kerenkraut - CO':  'kere1',
+  'Werner - CO':      'wern1',
+  'Weber - CO':       'webe1',
+  'Fayersteyn - CO':  'faye1',
 };
 const PROVIDERS = [
   'Goldberger - SLP','Friedman - SLP','Ziegler - SLP','Horowitz - SLP','Herbst - SLP','Schachter - PT','Malks - OT','Dyckman - OT','Fischer - CO','Kerenkraut - CO','Werner - CO','Weber - CO','Fayersteyn - CO'
@@ -601,6 +601,15 @@ function updateCallSummary(provider){
 }
 
 function renderParentCallsTab(provider){
+  const pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
+  // Build set of scheduled students from RAW timeslots for this provider
+  const scheduledSet=new Set();
+  RAW.forEach(function(row){
+    var cell=(row[colIdx]||'').trim();
+    if(!cell||cell==='x'||cell.startsWith('Group')) return;
+    cell.split('/').forEach(function(part){var s=part.trim();if(s&&s!=='x')scheduledSet.add(s);});
+  });
+  // Use mandate list as the full student list
   const allStudents=(PROVIDER_MANDATES[provider]||[]).slice().sort();
   var talked=0;
   allStudents.forEach(function(s){if(getCallEntry(provider,s).status==='talked')talked++;});
@@ -615,7 +624,14 @@ function renderParentCallsTab(provider){
     var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
     var contact=getStudentContact(student);
     var pE=provider.replace(/'/g,"\\'"),sE=student.replace(/'/g,"\\'");
-    var isUnscheduled=!scheduledSet.has(student);
+    // Fuzzy check: is this student in the timeslot schedule?
+    var inSchedule=scheduledSet.has(student);
+    if(!inSchedule){
+      // Try case-insensitive match
+      var sl=student.toLowerCase().trim();
+      scheduledSet.forEach(function(k){if(k.toLowerCase().trim()===sl)inSchedule=true;});
+    }
+    var isUnscheduled=!inSchedule;
     html+='<div class="call-card'+(opt?' '+opt.cls:'')+'" id="'+callCardId(student)+'">';
     html+='<div class="call-card-name">'+student;
     if(isUnscheduled)html+=' <span class="badge-unscheduled">Not yet scheduled</span>';
