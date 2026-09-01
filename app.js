@@ -323,9 +323,19 @@ function showProviderView(provider,tab){
   document.getElementById('adminView').style.display='none';
   const byDay={};DAYS_ORDER.forEach(d=>byDay[d]=[]);
   let total=0,seen=0,absent=0;
+  const mandateSet=new Set((PROVIDER_MANDATES[provider]||[]).map(s=>s.toLowerCase().trim()));
+  function inMandate(name){
+    if(!mandateSet.size) return true; // no mandate = show all
+    const nl=name.toLowerCase().trim();
+    if(mandateSet.has(nl)) return true;
+    // fuzzy: check if all last-name words match
+    for(const m of mandateSet){ const mw=m.split(' '); const nw=nl.split(' '); if(mw.every(w=>nw.some(n=>n===w||n.startsWith(w)||w.startsWith(n)))) return true; }
+    return false;
+  }
   RAW.forEach(row=>{
     const student=(row[colIdx]||'').trim();
     if(!student||student==='x'||student.startsWith('Group')) return;
+    if(!inMandate(student)) return; // filter out non-mandated students
     const day=row[0],time=row[1];
     const done=isChecked(wk,provider,day,time,student);
     const ab=isAbsent(wk,provider,day,time,student);
