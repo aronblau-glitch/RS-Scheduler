@@ -419,19 +419,19 @@ const LETTERHEAD_B64='/9j/4AAQSkZJRgABAQEBLAEsAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQ
 const PASSWORDS = {
   'admin': 'admin123',
   'office': 'office123',
-  'goldberger': 'slp1',
-  'friedman': 'slp2',
-  'ziegler': 'slp3',
-  'horowitz': 'slp4',
-  'herbst': 'slp5',
-  'schachter': 'pt1',
-  'malks': 'ot1',
-  'dyckman': 'ot2',
-  'fischer': 'co1',
-  'kerenkraut': 'co2',
-  'werner': 'co3',
-  'weber': 'co4',
-  'fayersteyn': 'co5',
+  'Goldberger - SLP': 'slp1',
+  'Friedman - SLP':   'slp2',
+  'Ziegler - SLP':    'slp3',
+  'Horowitz - SLP':   'slp4',
+  'Herbst - SLP':     'slp5',
+  'Schachter - PT':   'pt1',
+  'Malks - OT':       'ot1',
+  'Dyckman - OT':     'ot2',
+  'Fischer - CO':     'co1',
+  'Kerenkraut - CO':  'co2',
+  'Werner - CO':      'co3',
+  'Weber - CO':       'co4',
+  'Fayersteyn - CO':  'co5',
 };
 const PROVIDERS = [
   'Goldberger - SLP','Friedman - SLP','Ziegler - SLP','Horowitz - SLP','Herbst - SLP','Schachter - PT','Malks - OT','Dyckman - OT','Fischer - CO','Kerenkraut - CO','Werner - CO','Weber - CO','Fayersteyn - CO'
@@ -1021,8 +1021,12 @@ function renderParentCallsTab(provider){
   const allStudents=(PROVIDER_MANDATES[provider]||[]).slice().sort();
   var talked=0;
   allStudents.forEach(function(s){if(getCallEntry(provider,s).status==='talked')talked++;});
+  var pSafeD=provider.replace(/'/g,"\\'");
   var html='<div class="call-log-bar"><div class="call-log-title">Parent Call Log</div>'
-    +'<div class="call-summary" id="callSummary">'+talked+' / '+allStudents.length+' contacted</div></div>';
+    +'<div style="display:flex;align-items:center;gap:8px;">'
+    +'<div class="call-summary" id="callSummary">'+talked+' / '+allStudents.length+' contacted</div>'
+    +'<button onclick="downloadProviderCallLogExcel(\''+pSafeD+'\')" style="font-size:0.72rem;padding:4px 10px;background:#276749;color:#fff;border:none;border-radius:6px;cursor:pointer;">Download Excel</button>'
+    +'</div></div>';
   allStudents.forEach(function(student){
     var entry=getCallEntry(provider,student);
     var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
@@ -1133,6 +1137,7 @@ function renderAdminView(){
   html += '<div class="admin-tabs">';
   html += '<button class="admin-tab' + (adminTab === 'overview' ? ' active' : '') + '" onclick="setAdminTab(&quot;overview&quot;)">Provider Overview</button>';
   html += '<button class="admin-tab' + (adminTab === 'student' ? ' active' : '') + '" onclick="setAdminTab(&quot;student&quot;)">Student Search</button>';
+  html += '<button class="admin-tab' + (adminTab === 'calllogs' ? ' active' : '') + '" onclick="setAdminTab(&quot;calllogs&quot;)">Call Logs</button>';
   html += '<button class="admin-tab' + (adminTab === 'sync' ? ' active' : '') + '" onclick="setAdminTab(&quot;sync&quot;)">Supabase Sync</button>';
   html += '</div><div id="adminTabContent"></div>';
 
@@ -1219,6 +1224,36 @@ function renderAdminTab(){
     el.innerHTML='<div class="search-wrap"><span class="si">&#128269;</span>'
       +'<input type="text" id="adminStudentSearch" placeholder="Search student name..." oninput="adminSearch()"></div>'
       +'<div id="adminSearchResults"><div class="no-data">Type a name to search.</div></div>';
+  } else if(adminTab==='calllogs'){
+    var clHtml='<div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">'
+      +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);" onclick="downloadCallLogExcel()">Download All Providers (Excel)</button>'
+      +'</div>';
+    PROVIDERS.forEach(function(prov){
+      var students=(PROVIDER_MANDATES[prov]||[]).slice().sort();
+      var talked=0;
+      students.forEach(function(s){if(getCallEntry(prov,s).status==='talked')talked++;});
+      clHtml+='<div class="provider-card"><div class="provider-card-header" onclick="toggleProvCard(\'cl_'+PROVIDERS.indexOf(prov)+'\')">'
+        +'<h3><span class="badge '+getTypeClass(prov)+'">'+( prov.split(' - ')[1]||'CO')+'</span> &nbsp;'+prov.split(' - ')[0]+'</h3>'
+        +'<div style="font-size:0.8rem;color:#718096;">'+talked+' / '+students.length+' contacted</div>'
+        +'</div>'
+        +'<div class="provider-sessions" id="cl_'+PROVIDERS.indexOf(prov)+'">';
+      students.forEach(function(student){
+        var entry=getCallEntry(prov,student);
+        var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
+        var contact=getStudentContact(student);
+        clHtml+='<div class="admin-session-row" style="flex-wrap:wrap;gap:4px;">'
+          +'<div style="flex:1;min-width:140px;font-weight:600;font-size:0.84rem;">'+student+'</div>'
+          +'<div style="min-width:100px;font-size:0.78rem;color:#2b6cb0;">'+(opt?opt.label:'Not called')+'</div>';
+        if(contact){
+          if(contact.father)clHtml+='<a class="call-num father" href="tel:'+contact.father.replace(/[^0-9+]/g,'')+'">F: '+contact.father+'</a>';
+          if(contact.mother)clHtml+='<a class="call-num mother" href="tel:'+contact.mother.replace(/[^0-9+]/g,'')+'">M: '+contact.mother+'</a>';
+        }
+        if(entry.note)clHtml+='<div style="width:100%;font-size:0.76rem;color:#718096;font-style:italic;padding-left:4px;">'+entry.note.replace(/</g,'&lt;')+'</div>';
+        clHtml+='</div>';
+      });
+      clHtml+='</div></div>';
+    });
+    el.innerHTML=clHtml;
   } else if(adminTab==='sync'){
     const cfg=getSupabaseCfg();
     el.innerHTML='<div class="config-panel"><h3>Supabase Sync</h3>'
@@ -1245,6 +1280,68 @@ function renderAdminTab(){
   }
 }
 function toggleProvCard(id){ const el=document.getElementById(id);if(el)el.classList.toggle('open'); }
+
+// ── Excel download (SheetJS) ──────────────────────────────────────────────────
+function downloadCallLogExcel(){
+  // Load SheetJS if not already loaded
+  function doExport(){
+    var wb=XLSX.utils.book_new();
+    // One sheet per provider
+    PROVIDERS.forEach(function(prov){
+      var students=(PROVIDER_MANDATES[prov]||[]).slice().sort();
+      var rows=[['Student','Status','Note','Father Phone','Mother Phone','Best Contact','Preferred Time']];
+      students.forEach(function(student){
+        var entry=getCallEntry(prov,student);
+        var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
+        var contact=getStudentContact(student)||{};
+        rows.push([
+          student,
+          opt?opt.label:'',
+          entry.note||'',
+          contact.father||'',
+          contact.mother||'',
+          contact.bestContact||'',
+          contact.preferredTime||''
+        ]);
+      });
+      var ws=XLSX.utils.aoa_to_sheet(rows);
+      // Auto column widths
+      ws['!cols']=[{wch:28},{wch:16},{wch:32},{wch:16},{wch:16},{wch:18},{wch:28}];
+      var sheetName=prov.replace(/[:\\\/\?\*\[\]]/g,'').substring(0,31);
+      XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    });
+    XLSX.writeFile(wb,'CallLog_AllProviders.xlsx');
+  }
+  if(typeof XLSX!=='undefined'){
+    doExport();
+  } else {
+    var s=document.createElement('script');
+    s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+    s.onload=doExport;
+    document.head.appendChild(s);
+  }
+}
+
+function downloadProviderCallLogExcel(provider){
+  function doExport(){
+    var wb=XLSX.utils.book_new();
+    var students=(PROVIDER_MANDATES[provider]||[]).slice().sort();
+    var rows=[['Student','Status','Note','Father Phone','Mother Phone','Best Contact','Preferred Time']];
+    students.forEach(function(student){
+      var entry=getCallEntry(provider,student);
+      var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
+      var contact=getStudentContact(student)||{};
+      rows.push([student,opt?opt.label:'',entry.note||'',contact.father||'',contact.mother||'',contact.bestContact||'',contact.preferredTime||'']);
+    });
+    var ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:28},{wch:16},{wch:32},{wch:16},{wch:16},{wch:18},{wch:28}];
+    var sheetName=provider.replace(/[:\\\/\?\*\[\]]/g,'').substring(0,31);
+    XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    XLSX.writeFile(wb,'CallLog_'+provider.split(' - ')[0]+'.xlsx');
+  }
+  if(typeof XLSX!=='undefined'){doExport();}
+  else{var s=document.createElement('script');s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';s.onload=doExport;document.head.appendChild(s);}
+}
 function adminSearch(){
   const query=(document.getElementById('adminStudentSearch').value||'').trim().toLowerCase();
   const results=document.getElementById('adminSearchResults'),wk=getWeekKey();
