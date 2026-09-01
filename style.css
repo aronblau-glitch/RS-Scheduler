@@ -243,3 +243,66 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
   .check-btn, .absent-btn, .nc-btn { width: 28px; height: 28px; font-size: 0.8rem; }
   .student-name { font-size: 0.82rem; }
 }
+
+/* ── Provider tabs (Schedule / Parent Calls) ─────────────────────── */
+.prov-tabs { display:flex; gap:0; border-bottom:2px solid #e2e8f0; margin-bottom:16px; }
+.prov-tab {
+  padding:10px 20px; font-size:0.9rem; font-weight:600; color:#718096;
+  background:none; border:none; border-bottom:3px solid transparent;
+  cursor:pointer; transition:all 0.15s; margin-bottom:-2px;
+}
+.prov-tab.active { color:#2d4a6e; border-bottom-color:#2d4a6e; }
+.prov-tab:hover:not(.active) { color:#2d4a6e; background:#f7fafc; }
+
+/* ── Call log UI ──────────────────────────────────────────────────── */
+.call-log-bar {
+  background:white; border-radius:12px; padding:16px 18px; margin-bottom:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.call-log-title { font-size:1rem; font-weight:700; color:#1a2332; margin-bottom:2px; }
+.call-summary { font-size:0.82rem; color:#718096; margin-bottom:0; }
+
+.call-card {
+  background:white; border-radius:12px; padding:14px 16px; margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06); border-left:4px solid #e2e8f0;
+  transition:border-color 0.2s;
+}
+.call-card.cs-talked    { border-left-color:#38a169; }
+.call-card.cs-nopickup  { border-left-color:#e53e3e; }
+.call-card.cs-voicemail { border-left-color:#805ad5; }
+.call-card.cs-multitried{ border-left-color:#dd6b20; }
+.call-card.cs-callback  { border-left-color:#3182ce; }
+
+.call-card-name { font-size:0.95rem; font-weight:700; color:#1a2332; margin-bottom:6px; }
+.call-contacts-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; align-items:center; }
+.call-num {
+  font-size:0.8rem; padding:3px 8px; border-radius:6px; font-weight:600;
+  text-decoration:none; display:inline-block;
+}
+.call-num.father { background:#ebf8ff; color:#2b6cb0; }
+.call-num.mother { background:#fff0f6; color:#97266d; }
+.best-contact-tag {
+  font-size:0.72rem; background:#fef3c7; color:#92400e; border-radius:4px;
+  padding:2px 6px; font-weight:600;
+}
+.call-status-btns { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.call-status-btn {
+  font-size:0.78rem; padding:5px 10px; border-radius:20px; border:2px solid #e2e8f0;
+  background:white; color:#4a5568; cursor:pointer; transition:all 0.15s; font-weight:600;
+}
+.call-status-btn:hover { border-color:#2d4a6e; color:#2d4a6e; }
+.call-status-btn.active.opt-talked    { background:#38a169; border-color:#38a169; color:white; }
+.call-status-btn.active.opt-nopickup  { background:#e53e3e; border-color:#e53e3e; color:white; }
+.call-status-btn.active.opt-voicemail { background:#805ad5; border-color:#805ad5; color:white; }
+.call-status-btn.active.opt-multitried{ background:#dd6b20; border-color:#dd6b20; color:white; }
+.call-status-btn.active.opt-callback  { background:#3182ce; border-color:#3182ce; color:white; }
+.call-note-input {
+  width:100%; padding:7px 10px; border:2px solid #e2e8f0; border-radius:8px;
+  font-size:0.82rem; resize:none; outline:none; font-family:inherit;
+  transition:border-color 0.15s;
+}
+.call-note-input:focus { border-color:#2d4a6e; }
+
+/* ── New badge types ─────────────────────────────────────────────── */
+.badge-pt   { background:#fef3c7; color:#92400e; border-radius:4px; padding:1px 5px; font-size:0.72rem; font-weight:700; }
+.badge-lmsw { background:#fce7f3; color:#97266d; border-radius:4px; padding:1px 5px; font-size:0.72rem; font-weight:700; }
