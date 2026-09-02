@@ -1203,16 +1203,19 @@ function renderAdminTab(){
     var clProviders = adminCallLogDept==='mesivta' ? MESIVTA_PROVIDERS : PROVIDERS;
     var clMandates  = adminCallLogDept==='mesivta' ? MESIVTA_PROVIDER_MANDATES : PROVIDER_MANDATES;
     var clContacts  = adminCallLogDept==='mesivta' ? MESIVTA_STUDENT_CONTACTS : STUDENT_CONTACTS;
-    // Load from Supabase cache if available
+    // Load from Supabase (async — re-renders when done)
     loadCallLogsFromSupabase();
-    var clHtml='<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+    var clHtml='<div style="margin-bottom:8px;padding:8px 12px;background:#fffbeb;border:1px solid #f6e05e;border-radius:8px;font-size:0.78rem;color:#744210;">'
+      +'<strong>Note:</strong> Call log data syncs from Supabase. Providers must save at least one call status for it to appear here. '
+      +'If you just set up the <code>calllogs</code> table, ask providers to log one call to start syncing.</div>'
+      +'<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
       +'<div class="prov-tabs no-print" style="margin:0;">'
       +'<button class="prov-tab'+(adminCallLogDept==='rs'?' active':'')+'" onclick="adminCallLogDept=\'rs\';setAdminTab(\'calllogs\')">RS</button>'
       +'<button class="prov-tab'+(adminCallLogDept==='mesivta'?' active':'')+'" onclick="adminCallLogDept=\'mesivta\';setAdminTab(\'calllogs\')">Mesivta</button>'
       +'</div>'
       +'<button class="btn-dl" onclick="downloadCallLogExcel(adminCallLogDept)">Download '+(adminCallLogDept==='mesivta'?'Mesivta':'RS')+' All Providers</button>'
       +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);" onclick="downloadCallLogExcel(\'both\')">Download Both Depts (Excel)</button>'
-      +'</div>';
+      +'</div></div>';
     // (legend removed — status shown inline per provider)
     clProviders.forEach(function(prov){
       var students=(clMandates[prov]||[]).slice().sort();
@@ -1232,7 +1235,7 @@ function renderAdminTab(){
         +'<h3><span class="badge '+getTypeClass(prov)+'">'+( prov.split(' - ')[1]||'CO')+'</span> &nbsp;'+prov.split(' - ')[0]+'</h3>'
         +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
         +'<span class="call-stat-row">'
-        +(talked?'<span class="csr-item csr-talked">Reached: '+talked+'</span>':'') 
+        +(talked?'<span class="csr-item csr-talked">Reached: '+talked+'</span>':'')
         +(vm?'<span class="csr-item csr-vm">VM: '+vm+'</span>':'')
         +(nopickup?'<span class="csr-item csr-nopickup">No Ans: '+nopickup+'</span>':'')
         +(multi?'<span class="csr-item csr-multi">Multi-try: '+multi+'</span>':'')
@@ -1241,7 +1244,7 @@ function renderAdminTab(){
         +'</span>'
         +'<button class="btn-sync" style="padding:4px 10px;font-size:0.72rem;margin-left:8px;background:linear-gradient(135deg,#276749,#38a169);" onclick="event.stopPropagation();adminDownloadProviderCallLog(\''+pSafe+'\',\''+adminCallLogDept+'\')">Export</button>'
         +'</div></div>'
-        +'<div class="provider-sessions" id="'+pid+'">';
+        +'<div class="provider-sessions open" id="'+pid+'">';
       students.forEach(function(student){
         var entry=getSbCallEntry(prov,student);
         var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
