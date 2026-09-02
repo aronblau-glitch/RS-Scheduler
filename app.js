@@ -689,11 +689,11 @@ function showProviderView(provider,tab){
         +tagHtml
         +'<div class="action-btns">'
         +'<button class="check-btn'+(s.done?' done':'')+'" id="btn_'+id+'" title="Seen" onclick="handleCheck(\''+pE+'\',\''+day+'\','+s.time+',\''+sE+'\',\''+id+'\')">'+(s.done?'&#10003;':'')+'</button>'
-        +'<button class="absent-btn'+(s.absent?' active':'')+'" id="ab_'+id+'" title="Absent" onclick="handleAbsent(\''+pE+'\',\''+day+'\','+s.time+',\''+sE+'\',\''+id+'\')">&#128683;</button>'
+        +'<button class="absent-btn'+(s.absent?' active':'')+'" id="ab_'+id+'" title="Absent" onclick="handleAbsent(\''+pE+'\',\''+day+'\','+s.time+',\''+sE+'\',\''+id+'\')">A</button>'
         +'<button class="nc-btn'+(s.nc?' active':'')+'" id="nc_'+id+'" title="Non-Compliant" onclick="handleNc(\''+pE+'\',\''+day+'\','+s.time+',\''+sE+'\',\''+id+'\')">NC</button>'
         +'</div></div>';
     });
-    html+='<div class="save-send-bar no-print"><button class="btn-save-send" onclick="openSendModal(\''+provider.replace(/'/g,"\\'")+'\',\''+day+'\')">&#128228; Save &amp; Send &#8212; '+day+'</button></div>';
+    html+='<div class="save-send-bar no-print"><button class="btn-save-send no-print" onclick="openSendModal(\''+provider.replace(/'/g,"\\'")+'\',\''+day+'\')">Send Report &mdash; '+day+'</button></div>';
     html+='</div>';
   });
 
@@ -944,7 +944,7 @@ let adminAutoRefresh = null;
 async function showAdminView(){
   document.getElementById('providerView').style.display='none';
   document.getElementById('adminView').style.display='block';
-  document.getElementById('adminView').innerHTML='<div style="text-align:center;padding:60px 20px;color:#718096;font-size:1rem;">&#9203; Loading live data from Supabase...</div>';
+  document.getElementById('adminView').innerHTML='<div style="text-align:center;padding:60px 20px;color:#718096;font-size:1rem;">Loading live data from Supabase...</div>';
   const cfg=getSupabaseCfg();
   if(cfg.url&&cfg.key){ sbLoadStatus = await fetchFromSupabase(); }
   renderAdminView();
@@ -961,12 +961,12 @@ function updateSbStatusBadge(){
   if(!el) return;
   const count = Object.keys(sbCache).length;
   const cacheMatchesView = sbCacheWeek === getActiveWeekKey();
-  if(sbLoadStatus===true) el.innerHTML='&#128994; Supabase: '+count+' record'+(count!==1?'s':'')+' loaded'+(cacheMatchesView?'':' <span style="color:#fbd38d;">(wrong week — refreshing)</span>')+' &nbsp;<button onclick="adminRefreshNow()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;border-radius:5px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">&#8635; Refresh</button>';
-  else if(sbLoadStatus===false) el.innerHTML='&#128308; Supabase: could not load &nbsp;<button onclick="adminRefreshNow()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;border-radius:5px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">&#8635; Retry</button>';
-  else el.innerHTML='&#9898; Supabase: checking...';
+  if(sbLoadStatus===true) el.innerHTML='Supabase: '+count+' record'+(count!==1?'s':'')+' loaded'+(cacheMatchesView?'':' <span style="color:#fbd38d;">(wrong week — refreshing)</span>')+' &nbsp;<button onclick="adminRefreshNow()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;border-radius:5px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">Refresh</button>';
+  else if(sbLoadStatus===false) el.innerHTML='Supabase: could not load &nbsp;<button onclick="adminRefreshNow()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;border-radius:5px;padding:2px 10px;cursor:pointer;font-size:0.75rem;">Retry</button>';
+  else el.innerHTML='Supabase: checking...';
 }
 async function adminRefreshNow(){
-  const el=document.getElementById('sbStatusBadge'); if(el) el.innerHTML='&#9203; Refreshing...';
+  const el=document.getElementById('sbStatusBadge'); if(el) el.innerHTML='Refreshing...';
   const cfg=getSupabaseCfg();
   if(cfg.url&&cfg.key){ sbLoadStatus = await fetchFromSupabase(getActiveWeekKey()); }
   renderAdminTab(); updateSbStatusBadge();
@@ -991,11 +991,11 @@ function renderAdminView(){
   var html = '';
   html += '<div class="week-banner">';
   html += '<div><div class="week-label">' + (isCurrentWeek ? 'Current Week' : 'Past Week') + ' &mdash; ' + weekLabel + '</div>';
-  html += '<div class="week-sub" id="sbStatusBadge">&#9898; Supabase: checking...</div></div>';
+  html += '<div class="week-sub" id="sbStatusBadge">Supabase: checking...</div></div>';
   if (isCurrentWeek) {
     html += '<div class="week-reset-badge">Next reset: ' + getNextSunday() + '</div>';
   } else {
-    html += '<div class="week-reset-badge" style="background:#e9d8fd;color:#553c9a;">&#128337; ' + weeksBack + ' week' + (weeksBack !== 1 ? 's' : '') + ' ago</div>';
+    html += '<div class="week-reset-badge" style="background:#e9d8fd;color:#553c9a;">' + weeksBack + ' week' + (weeksBack !== 1 ? 's' : '') + ' ago</div>';
   }
   html += '</div>';
 
@@ -1048,7 +1048,7 @@ async function populateWeekPicker(activeWk){
 
 async function navToWeek(wk){
   viewingWeekKey = (wk===getWeekKey()) ? null : wk;
-  document.getElementById('adminView').innerHTML='<div style="text-align:center;padding:60px 20px;color:#718096;font-size:1rem;">&#9203; Loading week data...</div>';
+  document.getElementById('adminView').innerHTML='<div style="text-align:center;padding:60px 20px;color:#718096;font-size:1rem;">Loading week data...</div>';
   const cfg=getSupabaseCfg();
   if(cfg.url&&cfg.key){ await fetchFromSupabase(wk); }
   renderAdminView();
@@ -1087,7 +1087,7 @@ function renderAdminTab(){
           const icon=s.absent?'Absent':s.nc?'NC':s.done?'Seen':'--';
           const cls=s.done?'checked-text':s.absent?'':'unchecked-text';
           html+='<div class="admin-session-row">'
-            +'<div class="check-icon">'+(s.done?'&#9989;':s.absent?'&#128683;':s.nc?'&#9888;':'&#11036;')+'</div>'
+            +'<div class="check-icon">'+(s.done?'<span class="ci-done">&#10003;</span>':s.absent?'<span class="ci-absent">A</span>':s.nc?'<span class="ci-nc">NC</span>':'<span class="ci-empty"></span>')+'</div>'
             +'<div style="width:78px;font-size:0.76rem;color:#4a5568;">'+timeStr(s.time)+'</div>'
             +'<div class="'+cls+'" style="flex:1;">'+s.student+(s.absent?' <span style="font-size:0.7rem;color:#c53030;">(Absent)</span>':s.nc?' <span style="font-size:0.7rem;color:#c05621;">(NC)</span>':'')+'</div>'
             +'<div style="font-size:0.72rem;color:#718096;">'+s.subject+'</div>'
@@ -1098,7 +1098,7 @@ function renderAdminTab(){
     });
     el.innerHTML=html;
   } else if(adminTab==='student'){
-    el.innerHTML='<div class="search-wrap"><span class="si">&#128269;</span>'
+    el.innerHTML='<div class="search-wrap"><span class="si">&#9906;</span>'
       +'<input type="text" id="adminStudentSearch" placeholder="Search student name..." oninput="adminSearch()"></div>'
       +'<div id="adminSearchResults"><div class="no-data">Type a name to search.</div></div>';
   } else if(adminTab==='calllogs'){
@@ -1110,16 +1110,10 @@ function renderAdminTab(){
       +'<button class="prov-tab'+(adminCallLogDept==='rs'?' active':'')+'" onclick="adminCallLogDept=\'rs\';setAdminTab(\'calllogs\')">RS</button>'
       +'<button class="prov-tab'+(adminCallLogDept==='mesivta'?' active':'')+'" onclick="adminCallLogDept=\'mesivta\';setAdminTab(\'calllogs\')">Mesivta</button>'
       +'</div>'
-      +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);margin-left:auto;" onclick="downloadCallLogExcel(adminCallLogDept)">&#11015; Download '+(adminCallLogDept==='mesivta'?'Mesivta':'RS')+' All Providers (Excel)</button>'
-      +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);" onclick="downloadCallLogExcel(\'both\')">&#11015; Download Both Depts (Excel)</button>'
+      +'<button class="btn-dl" onclick="downloadCallLogExcel(adminCallLogDept)">Download '+(adminCallLogDept==='mesivta'?'Mesivta':'RS')+' All Providers</button>'
+      +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);" onclick="downloadCallLogExcel(\'both\')">Download Both Depts (Excel)</button>'
       +'</div>';
-    // Status legend
-    clHtml+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:0.75rem;">';
-    CALL_OPTS.forEach(function(o){
-      clHtml+='<span style="padding:2px 10px;border-radius:20px;font-weight:600;" class="'+o.cls+'">'+o.label+'</span>';
-    });
-    clHtml+='<span style="padding:2px 10px;border-radius:20px;font-weight:600;background:#f7fafc;color:#a0aec0;border:1px solid #e2e8f0;">Not called</span>';
-    clHtml+='</div>';
+    // (legend removed — status shown inline per provider)
     clProviders.forEach(function(prov){
       var students=(clMandates[prov]||[]).slice().sort();
       var talked=0, vm=0, nopickup=0, multi=0, callback=0, notCalled=0;
@@ -1137,13 +1131,15 @@ function renderAdminTab(){
       clHtml+='<div class="provider-card"><div class="provider-card-header" onclick="toggleProvCard(\''+pid+'\')">'
         +'<h3><span class="badge '+getTypeClass(prov)+'">'+( prov.split(' - ')[1]||'CO')+'</span> &nbsp;'+prov.split(' - ')[0]+'</h3>'
         +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
-        +(talked?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-talked">Talked: '+talked+'</span>':'')
-        +(vm?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-vm">VM: '+vm+'</span>':'')
-        +(nopickup?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-nopickup">No Ans: '+nopickup+'</span>':'')
-        +(multi?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-multi">Multi: '+multi+'</span>':'')
-        +(callback?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-callback">Callback: '+callback+'</span>':'')
-        +'<span style="font-size:0.72rem;color:#a0aec0;">'+notCalled+' not called</span>'
-        +'<button class="btn-sync" style="padding:4px 10px;font-size:0.72rem;margin-left:8px;background:linear-gradient(135deg,#276749,#38a169);" onclick="event.stopPropagation();adminDownloadProviderCallLog(\''+pSafe+'\',\''+adminCallLogDept+'\')">&#11015; Excel</button>'
+        +'<span class="call-stat-row">'
+        +(talked?'<span class="csr-item csr-talked">Talked: '+talked+'</span>':'') 
+        +(vm?'<span class="csr-item csr-vm">VM: '+vm+'</span>':'')
+        +(nopickup?'<span class="csr-item csr-nopickup">No Ans: '+nopickup+'</span>':'')
+        +(multi?'<span class="csr-item csr-multi">Multi-try: '+multi+'</span>':'')
+        +(callback?'<span class="csr-item csr-callback">Callback: '+callback+'</span>':'')
+        +(notCalled?'<span class="csr-item csr-none">Pending: '+notCalled+'</span>':'')
+        +'</span>'
+        +'<button class="btn-sync" style="padding:4px 10px;font-size:0.72rem;margin-left:8px;background:linear-gradient(135deg,#276749,#38a169);" onclick="event.stopPropagation();adminDownloadProviderCallLog(\''+pSafe+'\',\''+adminCallLogDept+'\')">Export</button>'
         +'</div></div>'
         +'<div class="provider-sessions" id="'+pid+'">';
       students.forEach(function(student){
@@ -1177,7 +1173,7 @@ function renderAdminTab(){
       +'<button class="btn-sync" onclick="saveSupabaseCfg()">Save Config</button>'
       +'<button class="btn-sync" style="background:linear-gradient(135deg,#2b6cb0,#3182ce);" onclick="doSupabaseSync()">Push to Supabase</button>'
       +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);margin-top:6px;" onclick="refreshAdminData()">Refresh Admin View</button>'
-      +'<button class="btn-sync" style="background:linear-gradient(135deg,#744210,#c05621);margin-top:6px;" onclick="diagnoseSb()">&#128270; Diagnose Connection</button>'
+      +'<button class="btn-sync" onclick="diagnoseSb()">Diagnose Connection</button>'
       +'<div class="sync-status" id="syncStatus"></div>'
       +'<pre id="diagOut" style="background:#1a2332;color:#a8f0c0;padding:12px;border-radius:8px;font-size:0.75rem;margin-top:10px;white-space:pre-wrap;word-break:break-all;display:none;"></pre>'
       +'</div>'
@@ -1287,7 +1283,7 @@ function adminSearch(){
     sessions.forEach(s=>{
       const tc=getTypeClass(s.provider),tl=s.provider.includes('SLP')?'SLP':s.provider.includes('OT')?'OT':'CO';
       html+='<div class="admin-session-row">'
-        +'<div class="check-icon">'+(s.done?'&#9989;':s.absent?'&#128683;':s.nc?'&#9888;':'&#11036;')+'</div>'
+        +'<div class="check-icon">'+(s.done?'<span class="ci-done">&#10003;</span>':s.absent?'<span class="ci-absent">A</span>':s.nc?'<span class="ci-nc">NC</span>':'<span class="ci-empty"></span>')+'</div>'
         +'<div style="width:70px;font-size:0.75rem;color:#4a5568;">'+s.day+'</div>'
         +'<div style="width:70px;font-size:0.75rem;color:#4a5568;">'+timeStr(s.time)+'</div>'
         +'<div style="flex:1;font-size:0.82rem;" class="'+(s.done?'checked-text':s.absent?'':'unchecked-text')+'">'+s.provider+'</div>'
@@ -1506,8 +1502,8 @@ function renderOfficeView(){
   html += '<div class="week-sub">Search any student and download their schedule report</div></div>';
   html += '<div class="week-reset-badge">Week of ' + getWeekRange() + '</div></div>';
   html += '<div class="office-search-bar">';
-  html += '<input type="text" id="officeSearchInput" placeholder="&#128269; Type student name to search..." oninput="officeSearch()" autocomplete="off">';
-  html += '<button class="btn-download" id="btnDownloadDocx" onclick="downloadStudentExcel()" disabled>&#128202; Download Excel</button>';
+  html += '<input type="text" id="officeSearchInput" placeholder="Search student name…" oninput="officeSearch()" autocomplete="off">';
+  html += '<button class="btn-download" id="btnDownloadDocx" onclick="downloadStudentExcel()" disabled>Download Excel</button>';
   html += '</div>';
   html += '<div id="officeResults"><div class="no-data">Start typing a student name above.</div></div>';
   container.innerHTML = html;
@@ -1565,9 +1561,9 @@ function officeSearch(){
     html += '<div class="student-report-card" data-sname="' + name.replace(/"/g,'&quot;') + '" onclick="selectStudent(this.dataset.sname)" style="cursor:pointer;">';
     html += '<div class="student-report-header">';
     html += '<h2>' + name + '</h2>';
-    html += '<span>' + sessions.length + ' sessions &nbsp;|&nbsp; &#9989; ' + seenCount + ' seen';
-    if(abCount) html += ' &nbsp;|&nbsp; &#128683; ' + abCount + ' absent';
-    if(ncCount) html += ' &nbsp;|&nbsp; &#9888; ' + ncCount + ' NC';
+    html += '<span>' + sessions.length + ' sessions &nbsp;&middot;&nbsp; ' + seenCount + ' seen';
+    if(abCount) html += ' &nbsp;&middot;&nbsp; ' + abCount + ' absent';
+    if(ncCount) html += ' &nbsp;&middot;&nbsp; ' + ncCount + ' NC';
     html += '</span></div>';
 
     // Group by provider
