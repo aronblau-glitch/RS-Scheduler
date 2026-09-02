@@ -366,6 +366,11 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
       <option value="Werner - CO">Werner - CO</option>
       <option value="Weber - CO">Weber - CO</option>
       <option value="Fayersteyn - CO">Fayersteyn - CO</option>
+      <optgroup label="── Mesivta ──">
+        <option value="Lebovits - SLP">Lebovits - SLP</option>
+        <option value="Fendel - CO">Fendel - CO</option>
+        <option value="Wagshal - CO">Wagshal - CO</option>
+      </optgroup>
       <option value="admin">Admin</option>
       <option value="office">Office</option>
     </select>
@@ -432,6 +437,9 @@ const PASSWORDS = {
   'Werner - CO':      'wern1',
   'Weber - CO':       'webe1',
   'Fayersteyn - CO':  'faye1',
+  'Lebovits - SLP':   'lebo1',
+  'Fendel - CO':      'fend1',
+  'Wagshal - CO':     'wags1',
 };
 const PROVIDERS = [
   'Goldberger - SLP','Friedman - SLP','Ziegler - SLP','Horowitz - SLP','Herbst - SLP','Schachter - PT','Malks - OT','Dyckman - OT','Fischer - CO','Kerenkraut - CO','Werner - CO','Weber - CO','Fayersteyn - CO'
@@ -617,6 +625,149 @@ const PROVIDER_MANDATES = {
   "Fayersteyn - CO": ["Briskman Isaac", "Gestetner Efraim", "Horowitz Chaim", "Kaufman, Shimmy", "Kraminar Leiby", "Levine, Reuven", "Lowenbraun, Eli", "Slomiuc Yehuda", "Teichman Yidel", "Twersky Shia", "Weinberger Rafael"]
 };
 
+const MESIVTA_PROVIDERS = [
+  'Lebovits - SLP','Ziegler - SLP','Schachter - PT','Malks - OT',
+  'Fendel - CO','Wagshal - CO','Werner - CO','Fayersteyn - CO'
+];
+const PROVIDER_DEPT = {
+  'Goldberger - SLP':'rs','Friedman - SLP':'rs','Ziegler - SLP':'both',
+  'Horowitz - SLP':'rs','Herbst - SLP':'rs','Schachter - PT':'both',
+  'Malks - OT':'both','Dyckman - OT':'rs','Fischer - CO':'rs',
+  'Kerenkraut - CO':'rs','Werner - CO':'both','Weber - CO':'rs',
+  'Fayersteyn - CO':'both','Lebovits - SLP':'mesivta','Fendel - CO':'mesivta','Wagshal - CO':'mesivta'
+};
+const MESIVTA_RAW = [
+  ["Monday",0.40625,"Breakfast","Braver Yossi / Dinowitz Shmuel Alexander","","Hayon David / Kolodny Binyamin","Erlich Yaakov A.","","Berkowitz Avrom Abba","","Berger Nachman"],
+  ["Monday",0.4270833333,"Breakfast","","","Dinowitz Shmuel Alexander / Feldman Shraga","","","","",""],
+  ["Monday",0.4479166667,"1st session","","","","","","","",""],
+  ["Monday",0.46875,"2nd Session","Hayon David / Leiberman Yehoshu","","x","Stamler Gavriel","","Bornstien Jacob","","Braver Yossi"],
+  ["Monday",0.4895833333,"2nd Session","Nakdimen Chaim Pinchas / Peterman Daniel","","x","Stern Aaron","","Eisenberg Avraham","","Haddad Moshe Chaim"],
+  ["Monday",0.5104166667,"2nd Session","Kolodny Gabriel","","x","Tennenbaum Yaakov","","Erani Michael","","Khan Benzion"],
+  ["Monday",0.53125,"3rd Session","Berger Nachman","","Nakdimen Chaim Pinchas / Schochet Shlomo Mordechai","Bloom Yair","","Etlinger Moshe","","Dinowitz Shmuel Alexander"],
+  ["Monday",0.5520833333,"Lunch","Haddad Moshe Chaim","","","Bornstien Jacob","","Feldman Shraga","","Levitz Avrohom"],
+  ["Monday",0.5729166667,"Lunch","Feldman Shraga","","","Bachon Abrahem","","Kolodny Binyamin","","Peterman Daniel"],
+  ["Monday",0.59375,"English","Hershkop Shneur Zalman","","","Meltzer Tzvi","","Kolodny Gabriel","","Samra Aaron"],
+  ["Monday",0.6145833333,"English","Khan Benzion","","","Schochet Shlomo Mordechai","","Marcus Aron","","Scher Elazar A"],
+  ["Monday",0.6354166667,"Math","Levitz Avrohom","","","Feltman Daniel","","Meltzer Tzvi","","Schwartz Moshe Michael"],
+  ["Monday",0.65625,"Science","Marcus Aron","","","Schwartz Moshe Michael","","Mezei Yehuda","","Sigman Shmuel Alexander"],
+  ["Monday",0.6875,"Event","x","","","x","","x","","x"],
+  ["Monday",0.7083333333,"social skill group","Meltzer Tzvi","","","Marcus Aron","","Moskowitz Meir Shalom","","x"],
+  ["Tuesday",0.40625,"Breakfast","Feldman Shraga","Bornstien Jacob","","","","","Bachon Abrahem",""],
+  ["Tuesday",0.4270833333,"Breakfast","","","","","","","",""],
+  ["Tuesday",0.4479166667,"1st session","","","","","","","",""],
+  ["Tuesday",0.46875,"2nd Session","Marcus Aron","Berkowitz Avrom Abba","","","","","Bloom Yair",""],
+  ["Tuesday",0.4895833333,"2nd Session","Meltzer Tzvi","Chriqui Nathanial","","","","","Spitzer Buruch",""],
+  ["Tuesday",0.5104166667,"2nd Session","Mezei Yehuda","Etlinger Moshe","","","","","Weingarten Isaac",""],
+  ["Tuesday",0.53125,"3rd Session","Haddad Moshe Chaim","Bachon Abrahem","","","","","Willig Chaim",""],
+  ["Tuesday",0.5520833333,"Lunch","Berger Nachman","Bloom Yair","","","","","x",""],
+  ["Tuesday",0.5729166667,"Lunch","Hershkop Shneur Zalman","Eisenberg Avraham","","","","","",""],
+  ["Tuesday",0.59375,"English","Levitz Avrohom","Feltman Daniel","","","","","",""],
+  ["Tuesday",0.6145833333,"English","Reich Nathan","Goldberg Chaim","","","","","",""],
+  ["Tuesday",0.6354166667,"Math","Khan Benzion","Goldberger Benyamin","","","","","",""],
+  ["Tuesday",0.65625,"Science","Kolodny Gabriel","Goldberger David","","","","","",""],
+  ["Tuesday",0.6875,"Event","x","x","","","","","",""],
+  ["Tuesday",0.7083333333,"social skill group","Rosenfeld Yehuda","Kolodny Binyamin","","","","","",""],
+  ["Wednesday",0.40625,"Breakfast","Mezei Yehuda","","Nakdimen Chaim Pinchas / Schochet Shlomo Mordechai","Sigman Shmuel Alexander","","","Bloom Yair","Haddad Moshe Chaim"],
+  ["Wednesday",0.4270833333,"Breakfast","","","Hayon David / Kolodny Binyamin","","","","",""],
+  ["Wednesday",0.4479166667,"1st session","","","","","","","",""],
+  ["Wednesday",0.46875,"2nd Session","Rosenfeld Yehuda","","Dinowitz Shmuel Alexander / Feldman Shraga","Veksler Aron","","","Bachon Abrahem","Berger Nachman"],
+  ["Wednesday",0.4895833333,"2nd Session","Scher Elazar A","","x","Weinberger Joel","","","Willig Chaim","Levitz Avrohom"],
+  ["Wednesday",0.5104166667,"2nd Session","Schochet Shlomo Mordechai","","x","Zachai Yosef","","","x","Samra Aaron"],
+  ["Wednesday",0.53125,"3rd Session","Reich Nathan","","x","Bornstien Jacob","","","Spitzer Buruch","Braver Yossi"],
+  ["Wednesday",0.5520833333,"Lunch","Samra Aaron","","x","Simon Eliyahu","","","Weingarten Isaac","Dinowitz Shmuel Alexander"],
+  ["Wednesday",0.5729166667,"Lunch","Schwartz Moshe Michael","","","Spitzer Buruch","","","","Khan Benzion"],
+  ["Wednesday",0.59375,"English","Shein Dovi","","","Bachon Abrahem","","","","Peterman Daniel"],
+  ["Wednesday",0.6145833333,"English","Sigman Shmuel Alexander","","","Weingarten Isaac","","","","Schwartz Moshe Michael"],
+  ["Wednesday",0.6354166667,"Math","Simon Eliyahu","","","Stamler Gavriel","","","","Scher Elazar A"],
+  ["Wednesday",0.65625,"Science","Spitzer Buruch","","","Willig Chaim","","","","x"],
+  ["Wednesday",0.6875,"Event","x","","","x","","","","x"],
+  ["Wednesday",0.7083333333,"social skill group","Stamler Gavriel","","","x","","","","Sigman Shmuel Alexander"],
+  ["Thursday",0.40625,"Breakfast","Samra Aaron","Eisenberg Avraham","","","Chriqui Nathanial","","",""],
+  ["Thursday",0.4270833333,"Breakfast","","","","","","","",""],
+  ["Thursday",0.4479166667,"1st session","","","","","","","",""],
+  ["Thursday",0.46875,"2nd Session","Schwartz Moshe Michael","Feltman Daniel","","","Goldberg Chaim","","",""],
+  ["Thursday",0.4895833333,"2nd Session","Sigman Shmuel Alexander","Goldberger Benyamin","","","Hershkop Shneur Zalman","","",""],
+  ["Thursday",0.5104166667,"2nd Session","Simon Eliyahu","Goldberger David","","","Reich Nathan","","",""],
+  ["Thursday",0.53125,"3rd Session","Scher Elazar A","Berkowitz Avrom Abba","","","Rosenfeld Yehuda","","",""],
+  ["Thursday",0.5520833333,"Lunch","Spitzer Buruch","Bachon Abrahem","","","Schochet Shlomo Mordechai","","",""],
+  ["Thursday",0.5729166667,"Lunch","Schochet Shlomo Mordechai","Bornstien Jacob","","","Shein Dovi","","",""],
+  ["Thursday",0.59375,"English","Stamler Gavriel","Chriqui Nathanial","","","Simon Eliyahu","","",""],
+  ["Thursday",0.6145833333,"English","Teitelbaum Binyamin B","Etlinger Moshe","","","Tennenbaum Yaakov","","",""],
+  ["Thursday",0.6354166667,"Math","Tennenbaum Yaakov","Goldberg Chaim","","","Veksler Aron","","",""],
+  ["Thursday",0.65625,"Science","Veksler Aron","Kolodny Binyamin","","","Weinberger Joel","","",""],
+  ["Thursday",0.6875,"Event","x","x","","","x","","",""],
+  ["Thursday",0.7083333333,"social skill group","Weinberger Joel","Stern Aaron","","","Yanni Shimon","","",""]
+];
+const MESIVTA_PROVIDER_MANDATES = {
+  "Fayersteyn - CO": ["Berger Nachman","Braver Yossi","Dinowitz Shmuel Alexander","Haddad Moshe Chaim","Khan Benzion","Levitz Avrohom","Peterman Daniel","Samra Aaron","Scher Elazar A","Schwartz Moshe Michael","Sigman Shmuel Alexander"],
+  "Fendel - CO": ["Chriqui Nathanial","Goldberg Chaim","Hershkop Shneur Zalman","Reich Nathan","Rosenfeld Yehuda","Schochet Shlomo Mordechai","Shein Dovi","Simon Eliyahu","Tennenbaum Yaakov","Veksler Aron","Weinberger Joel","Yanni Shimon"],
+  "Wagshal - CO": ["Berkowitz Avrom Abba","Bornstien Jacob","Eisenberg Avraham","Erani Michael","Etlinger Moshe","Feldman Shraga","Kolodny Binyamin","Kolodny Gabriel","Marcus Aron","Meltzer Tzvi","Mezei Yehuda","Moskowitz Meir Shalom","Nakdimen Chaim Pinchas","Stamler Gavriel"],
+  "Werner - CO": ["Bachon Abrahem","Bloom Yair","Spitzer Buruch","Weingarten Isaac","Willig Chaim"],
+  "Ziegler - SLP": ["Bachon Abrahem","Berkowitz Avrom Abba","Bloom Yair","Bornstien Jacob","Chriqui Nathanial","Eisenberg Avraham","Etlinger Moshe","Feltman Daniel","Goldberg Chaim","Goldberger Benyamin","Goldberger David","Kolodny Binyamin","Moskowitz Meir Shalom","Stern Aaron","Willig Chaim","Zachai Yosef"],
+  "Lebovits - SLP": ["Berger Nachman","Braver Yossi","Dinowitz Shmuel Alexander","Erlich Yaakov A.","Feldman Shraga","Haddad Moshe Chaim","Hayon David","Hershkop Shneur Zalman","Khan Benzion","Kolodny Gabriel","Leiberman Yehoshu","Levitz Avrohom","Marcus Aron","Meltzer Tzvi","Mezei Yehuda","Nakdimen Chaim Pinchas","Peterman Daniel","Reich Nathan","Rosenfeld Yehuda","Samra Aaron","Scher Elazar A","Schochet Shlomo Mordechai","Schwartz Moshe Michael","Shein Dovi","Sigman Shmuel Alexander","Simon Eliyahu","Spitzer Buruch","Stamler Gavriel","Teitelbaum Binyamin B","Tennenbaum Yaakov","Veksler Aron","Weinberger Joel","Weingarten Isaac","Yanni Shimon"],
+  "Malks - OT": ["Bachon Abrahem","Bloom Yair","Bornstien Jacob","Erlich Yaakov A.","Feltman Daniel","Marcus Aron","Meltzer Tzvi","Schochet Shlomo Mordechai","Schwartz Moshe Michael","Sigman Shmuel Alexander","Simon Eliyahu","Spitzer Buruch","Stamler Gavriel","Stern Aaron","Tennenbaum Yaakov","Veksler Aron","Weinberger Joel","Weingarten Isaac","Willig Chaim","Zachai Yosef"],
+  "Schachter - PT": ["Dinowitz Shmuel Alexander","Feldman Shraga","Hayon David","Kolodny Binyamin","Nakdimen Chaim Pinchas","Schochet Shlomo Mordechai"]
+};
+const MESIVTA_STUDENT_CONTACTS = {
+  "Bachon Abrahem": {father:"347-320-1513",mother:"917-683-8604",home:"917-683-8604",bestContact:"",preferredTime:""},
+  "Berger Nachman": {father:"347-533-2369",mother:"347-461-3471",home:"",bestContact:"",preferredTime:""},
+  "Berkowitz Avrom Abba": {father:"347-683-6024",mother:"347-683-6589",home:"718-258-1740",bestContact:"",preferredTime:""},
+  "Bloom Yair": {father:"",mother:"347-780-7940",home:"718-676-2314",bestContact:"",preferredTime:""},
+  "Bornstien Jacob": {father:"347-227-5344",mother:"718-701-5446",home:"718-377-9876",bestContact:"",preferredTime:""},
+  "Braver Yossi": {father:"845-537-1129",mother:"845-662-6358",home:"",bestContact:"",preferredTime:""},
+  "Chriqui Nathanial": {father:"917-865-8011",mother:"646-457-8051",home:"646-457-8051",bestContact:"",preferredTime:""},
+  "Dinowitz Shmuel Alexander": {father:"",mother:"347-615-6701",home:"",bestContact:"",preferredTime:""},
+  "Eisenberg Avraham": {father:"585-315-3975",mother:"347-244-5730",home:"",bestContact:"",preferredTime:""},
+  "Erani Michael": {father:"347-694-0815",mother:"347-652-3339",home:"347-652-3539",bestContact:"",preferredTime:""},
+  "Erlich Yaakov A.": {father:"516-808-8914",mother:"347-407-2138",home:"",bestContact:"",preferredTime:""},
+  "Etlinger Moshe": {father:"347-886-7808",mother:"347-300-1961",home:"347-886-7808",bestContact:"Father",preferredTime:""},
+  "Feldman Shraga": {father:"631-433-8080",mother:"917-861-1275",home:"631-433-8080",bestContact:"",preferredTime:""},
+  "Feltman Daniel": {father:"718-473-6404",mother:"718-473-6403",home:"718-253-1453",bestContact:"",preferredTime:""},
+  "Goldberg Chaim": {father:"646-627-3330",mother:"917-589-4580",home:"718-998-0406",bestContact:"",preferredTime:""},
+  "Goldberger Benyamin": {father:"347-452-6699",mother:"347-489-1681",home:"347-489-1681",bestContact:"",preferredTime:""},
+  "Goldberger David": {father:"347-452-6699",mother:"347-489-1681",home:"347-489-1681",bestContact:"",preferredTime:""},
+  "Haddad Moshe Chaim": {father:"917-627-1011",mother:"424-214-9961",home:"718-376-1251",bestContact:"Mother",preferredTime:""},
+  "Hayon David": {father:"",mother:"347-867-4326",home:"",bestContact:"Mother",preferredTime:""},
+  "Hershkop Shneur Zalman": {father:"718-764-3483",mother:"718-576-0975",home:"",bestContact:"",preferredTime:""},
+  "Khan Benzion": {father:"718-791-4465",mother:"347-489-7362",home:"718-434-6027",bestContact:"",preferredTime:""},
+  "Kolodny Binyamin": {father:"347-415-4827",mother:"347-631-9734",home:"",bestContact:"",preferredTime:""},
+  "Kolodny Gabriel": {father:"347-415-4827",mother:"347-631-9734",home:"",bestContact:"",preferredTime:""},
+  "Leiberman Yehoshu": {father:"917-648-3692",mother:"443-691-0005",home:"",bestContact:"",preferredTime:""},
+  "Levitz Avrohom": {father:"347-218-3921",mother:"347-729-4822",home:"",bestContact:"",preferredTime:""},
+  "Marcus Aron": {father:"718-812-3586",mother:"347-693-9691",home:"",bestContact:"",preferredTime:""},
+  "Meltzer Tzvi": {father:"845-499-8002",mother:"845-659-7867",home:"845-425-0351",bestContact:"",preferredTime:""},
+  "Mezei Yehuda": {father:"917-744-8903",mother:"917-714-9657",home:"718-327-1129",bestContact:"",preferredTime:""},
+  "Moskowitz Meir Shalom": {father:"917-601-2067",mother:"718-619-6406",home:"",bestContact:"",preferredTime:""},
+  "Nakdimen Chaim Pinchas": {father:"347-249-3345",mother:"347-831-6319",home:"718-853-3696",bestContact:"",preferredTime:""},
+  "Peterman Daniel": {father:"917-544-9696",mother:"347-385-8087",home:"718-437-9117",bestContact:"",preferredTime:""},
+  "Reich Nathan": {father:"718-614-6444",mother:"917-364-5636",home:"",bestContact:"",preferredTime:"all day"},
+  "Rosenfeld Yehuda": {father:"",mother:"845-494-3328",home:"845-494-3328",bestContact:"",preferredTime:""},
+  "Samra Aaron": {father:"347-613-3890",mother:"347-782-2037",home:"347-782-2037",bestContact:"",preferredTime:""},
+  "Scher Elazar A": {father:"347-680-0718",mother:"917-826-3591",home:"718-998-2697",bestContact:"",preferredTime:""},
+  "Schochet Shlomo Mordechai": {father:"347-772-6008",mother:"847-852-6408",home:"847-852-6408",bestContact:"",preferredTime:""},
+  "Schwartz Moshe Michael": {father:"718-938-0395",mother:"718-938-0394",home:"718-938-0394",bestContact:"",preferredTime:""},
+  "Shein Dovi": {father:"347-751-8798",mother:"917-297-3332",home:"",bestContact:"",preferredTime:""},
+  "Sigman Shmuel Alexander": {father:"516-582-0812",mother:"516-382-3116",home:"516-569-0805",bestContact:"",preferredTime:""},
+  "Simon Eliyahu": {father:"718-207-5146",mother:"718-614-4342",home:"718-207-5146",bestContact:"Both",preferredTime:"9-11am and after 4"},
+  "Spitzer Buruch": {father:"917-214-8893",mother:"917-826-3944",home:"718-438-2417",bestContact:"",preferredTime:""},
+  "Stamler Gavriel": {father:"917-939-1746",mother:"347-423-3411",home:"",bestContact:"",preferredTime:""},
+  "Stern Aaron": {father:"917-741-3025",mother:"917-407-7489",home:"917-741-3025",bestContact:"",preferredTime:""},
+  "Teitelbaum Binyamin B": {father:"682-232-6353",mother:"347-552-6948",home:"",bestContact:"Mother",preferredTime:""},
+  "Tennenbaum Yaakov": {father:"216-502-1378",mother:"347-366-8386",home:"347-366-8386",bestContact:"",preferredTime:""},
+  "Veksler Aron": {father:"718-600-5097",mother:"718-971-0534",home:"718-600-5097",bestContact:"",preferredTime:""},
+  "Weinberger Joel": {father:"347-304-0716",mother:"347-304-0714",home:"",bestContact:"",preferredTime:""},
+  "Weingarten Isaac": {father:"646-345-4648",mother:"347-362-6611",home:"",bestContact:"",preferredTime:""},
+  "Willig Chaim": {father:"917-209-4452",mother:"718-724-3942",home:"718-724-3942",bestContact:"",preferredTime:""},
+  "Yanni Shimon": {father:"347-465-5871",mother:"718-872-8904",home:"718-872-8904",bestContact:"",preferredTime:""},
+  "Zachai Yosef": {father:"414-213-6322",mother:"347-287-7760",home:"414-213-6322",bestContact:"",preferredTime:""}
+};
+// Helper: get the right data arrays for a given department
+function _getRaw(dept){ return dept==='mesivta'?MESIVTA_RAW:RAW; }
+function _getProviders(dept){ return dept==='mesivta'?MESIVTA_PROVIDERS:PROVIDERS; }
+function _getMandates(dept){ return dept==='mesivta'?MESIVTA_PROVIDER_MANDATES:PROVIDER_MANDATES; }
+function _getContacts(dept){ return dept==='mesivta'?MESIVTA_STUDENT_CONTACTS:STUDENT_CONTACTS; }
+function _getColIdx(provider,dept){ return _getProviders(dept).indexOf(provider)+3; }
+
 // Helper: split a timeslot cell value into individual student names
 function splitCellStudents(cell){
   if(!cell||cell==='x'||cell.startsWith('Group')) return [];
@@ -696,42 +847,44 @@ function _normName(name){
   return name.toLowerCase().replace(/[,.']/g,' ').replace(/\s+/g,' ').trim()
     .split(' ').filter(Boolean).map(_normWord).join(' ');
 }
-function getStudentContact(name){
-  if(STUDENT_CONTACTS[name]) return STUDENT_CONTACTS[name];
+function getStudentContact(name,dept){
+  const contacts=(dept==='mesivta')?MESIVTA_STUDENT_CONTACTS:STUDENT_CONTACTS;
+  if(contacts[name]) return contacts[name];
   // 1. Case-insensitive exact
   const nl=name.toLowerCase().replace(/[,.']/g,' ').replace(/\s+/g,' ').trim();
-  for(const k in STUDENT_CONTACTS){
-    if(k.toLowerCase().replace(/[,.']/g,' ').replace(/\s+/g,' ').trim()===nl) return STUDENT_CONTACTS[k];
+  for(const k in contacts){
+    if(k.toLowerCase().replace(/[,.']/g,' ').replace(/\s+/g,' ').trim()===nl) return contacts[k];
   }
   // 2. Normalized name exact
   const nn=_normName(name);
-  for(const k in STUDENT_CONTACTS){
-    if(_normName(k)===nn) return STUDENT_CONTACTS[k];
+  for(const k in contacts){
+    if(_normName(k)===nn) return contacts[k];
   }
   // 3. Word overlap on normalized words (last name + at least one first name word)
   const nw=nn.split(' ').filter(Boolean);
   let best=null, bestScore=0;
-  for(const k in STUDENT_CONTACTS){
+  for(const k in contacts){
     const kw=_normName(k).split(' ').filter(Boolean);
     const overlap=nw.filter(w=>kw.includes(w));
     // Require last name match (first word) + at least one other word
     if(overlap.length>=2 && (nw[0]===kw[0]||overlap.includes(nw[0]))){
-      if(overlap.length>bestScore){bestScore=overlap.length;best=STUDENT_CONTACTS[k];}
+      if(overlap.length>bestScore){bestScore=overlap.length;best=contacts[k];}
     }
   }
   if(best) return best;
   // 4. Loose: just last name + any one word match
-  for(const k in STUDENT_CONTACTS){
+  for(const k in contacts){
     const kw=_normName(k).split(' ').filter(Boolean);
     if(nw[0]&&kw[0]&&nw[0]===kw[0]){
       const overlap=nw.filter(w=>kw.includes(w));
-      if(overlap.length>=1&&overlap.length>bestScore){bestScore=overlap.length;best=STUDENT_CONTACTS[k];}
+      if(overlap.length>=1&&overlap.length>bestScore){bestScore=overlap.length;best=contacts[k];}
     }
   }
   return best||null;
 }
 
 let currentUser = null;
+let currentDept = null; // 'rs' | 'mesivta'
 let adminTab = 'overview';
 let sendModalDay = null;
 let viewingWeekKey = null; // null = current week; set to past week key when browsing history
@@ -828,7 +981,11 @@ function doLogin(){
   document.getElementById('headerName').textContent=sel==='admin'?'Admin':sel;
   if(sel==='admin') showAdminView();
   else if(sel==='office') showOfficeView();
-  else showProviderView(sel);
+  else {
+    const dept = PROVIDER_DEPT[sel];
+    if(dept==='both') showDeptChooser(sel);
+    else { currentDept=dept||'rs'; showProviderView(sel); }
+  }
 }
 function doLogout(){
   currentUser=null;
@@ -838,6 +995,21 @@ function doLogout(){
   document.getElementById('providerView').style.display='none';
   document.getElementById('adminView').style.display='none';
   document.getElementById('officeView').style.display='none';
+}
+
+function showDeptChooser(provider){
+  const container=document.getElementById('providerView');
+  document.getElementById('adminView').style.display='none';
+  document.getElementById('officeView').style.display='none';
+  container.style.display='block';
+  const pSafe=provider.replace(/'/g,"\\'");
+  container.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:24px;padding:40px;">'
+    +'<h2 style="font-size:1.3rem;font-weight:700;color:#2d3748;text-align:center;">Select Department</h2>'
+    +'<p style="color:#718096;text-align:center;">You are listed in both RS and Mesivta.<br>Which caseload would you like to view?</p>'
+    +'<div style="display:flex;gap:16px;">'
+    +'<button class="btn" style="font-size:1.1rem;padding:16px 32px;" onclick="currentDept=\'rs\';showProviderView(\''+pSafe+'\')">RS</button>'
+    +'<button class="btn" style="font-size:1.1rem;padding:16px 32px;background:#6b46c1;" onclick="currentDept=\'mesivta\';showProviderView(\''+pSafe+'\')">Mesivta</button>'
+    +'</div></div>';
 }
 
 /* --- PROVIDER VIEW --- */
@@ -857,14 +1029,14 @@ function showProviderView(provider,tab){
     container.innerHTML=html;
     return;
   }
-  const wk=getWeekKey(), pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
+  const wk=getWeekKey(), pIdx=_getProviders(dept).indexOf(provider), colIdx=pIdx+3;
   container.style.display='block';
   document.getElementById('adminView').style.display='none';
 
   // Build schedule lookup from Timeslot Schedule: name→[{day,time,subject}]
   // Cells may contain multiple students separated by " / "
   const schedLookup={};
-  RAW.forEach(function(row){
+  _getRaw(dept).forEach(function(row){
     var cell=(row[colIdx]||'').trim();
     if(!cell||cell==='x'||cell.startsWith('Group')) return;
     cell.split('/').forEach(function(part){
@@ -889,7 +1061,7 @@ function showProviderView(provider,tab){
   }
 
   // Use mandate list as the source of students
-  var mandateStudents=(PROVIDER_MANDATES[provider]||[]);
+  var mandateStudents=(_getMandates(dept)[provider]||[]);
   var byDay={};DAYS_ORDER.forEach(function(d){byDay[d]=[];});
   var unscheduled=[];
   var total=0,seen=0,absent=0;
@@ -1008,9 +1180,10 @@ function refreshRow(p,d,t,s,id,done,absent,nc){
   if(tag){ if(absent){tag.className='status-tag absent';tag.textContent='Absent';}else if(nc){tag.className='status-tag nc';tag.textContent='Non-Compliant';}else{tag.className='status-tag';tag.textContent='';} }
 }
 function updateSummary(provider){
-  const wk=getWeekKey(), pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
+  const dept=currentDept||PROVIDER_DEPT[provider]||'rs';
+  const wk=getWeekKey(), pIdx=_getProviders(dept).indexOf(provider), colIdx=pIdx+3;
   let total=0,seen=0,absent=0;
-  RAW.forEach(row=>{
+  _getRaw(dept).forEach(row=>{
     const s=(row[colIdx]||'').trim();if(!s||s==='x'||s.startsWith('Group'))return;
     total++;if(isChecked(wk,provider,row[0],row[1],s))seen++;if(isAbsent(wk,provider,row[0],row[1],s))absent++;
   });
@@ -1045,10 +1218,11 @@ function doSendReport(){
   const list=getEmailList();if(!list.length){alert('Please add at least one email address.');return;}
   if(!sendModalDay)return;
   const {provider,day}=sendModalDay, wk=getWeekKey();
-  const pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
-  const lines=['RS Schedule \u2014 '+provider,'Day: '+day+' | Week of: '+getWeekRange(),''];
+  const dept=currentDept||PROVIDER_DEPT[provider]||'rs';
+  const pIdx=_getProviders(dept).indexOf(provider), colIdx=pIdx+3;
+  const lines=[(dept==='mesivta'?'Mesivta':'RS')+' Schedule \u2014 '+provider,'Day: '+day+' | Week of: '+getWeekRange(),''];
   const seen=[],absent=[],nc=[],remain=[];
-  RAW.filter(r=>r[0]===day).forEach(row=>{
+  _getRaw(dept).filter(r=>r[0]===day).forEach(row=>{
     const student=(row[colIdx]||'').trim();if(!student||student==='x'||student.startsWith('Group'))return;
     const t=timeStr(row[1]),subj=row[2];
     if(isChecked(wk,provider,day,row[1],student))seen.push(t+' '+student+' ('+subj+')');
@@ -1115,25 +1289,27 @@ function renderCallCard(provider, student){
 function updateCallSummary(provider){
   const el=document.getElementById('callSummary');
   if(!el) return;
-  const pIdx=PROVIDERS.indexOf(provider),colIdx=pIdx+3;
+  const dept=currentDept||PROVIDER_DEPT[provider]||'rs';
+  const pIdx=_getProviders(dept).indexOf(provider),colIdx=pIdx+3;
   const students=new Set();
-  RAW.forEach(row=>{ const s=(row[colIdx]||'').trim(); if(s&&s!=='x'&&!s.startsWith('Group'))students.add(s); });
+  _getRaw(dept).forEach(row=>{ const s=(row[colIdx]||'').trim(); if(s&&s!=='x'&&!s.startsWith('Group'))students.add(s); });
   let talked=0,total=students.size;
   students.forEach(s=>{ const e=getCallEntry(provider,s); if(e.status==='talked')talked++; });
   el.textContent=talked+' / '+total+' contacted';
 }
 
-function renderParentCallsTab(provider){
-  const pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
+function renderParentCallsTab(provider,dept){
+  dept=dept||currentDept||PROVIDER_DEPT[provider]||'rs';
+  const pIdx=_getProviders(dept).indexOf(provider), colIdx=pIdx+3;
   // Build set of scheduled students from RAW timeslots for this provider
   const scheduledSet=new Set();
-  RAW.forEach(function(row){
+  _getRaw(dept).forEach(function(row){
     var cell=(row[colIdx]||'').trim();
     if(!cell||cell==='x'||cell.startsWith('Group')) return;
     cell.split('/').forEach(function(part){var s=part.trim();if(s&&s!=='x')scheduledSet.add(s);});
   });
   // Use mandate list as the full student list
-  const allStudents=(PROVIDER_MANDATES[provider]||[]).slice().sort();
+  const allStudents=(_getMandates(dept)[provider]||[]).slice().sort();
   var talked=0;
   allStudents.forEach(function(s){if(getCallEntry(provider,s).status==='talked')talked++;});
   var pSafeD=provider.replace(/'/g,"\\'");
@@ -1446,8 +1622,9 @@ function downloadCallLogExcel(){
 
 function downloadProviderCallLogExcel(provider){
   function doExport(){
+    var dept=currentDept||PROVIDER_DEPT[provider]||'rs';
     var wb=XLSX.utils.book_new();
-    var students=(PROVIDER_MANDATES[provider]||[]).slice().sort();
+    var students=(_getMandates(dept)[provider]||[]).slice().sort();
     var rows=[['Student','Status','Note','Father Phone','Mother Phone','Best Contact','Preferred Time']];
     students.forEach(function(student){
       var entry=getCallEntry(provider,student);
@@ -1738,7 +1915,7 @@ function officeSearch(){
 
   // Find all matching students
   var studentMap = {};
-  RAW.forEach(function(row){
+  [...RAW,...MESIVTA_RAW].forEach(function(row){
     for(var c = 3; c < 3 + PROVIDERS.length; c++){
       var student = (row[c] || '').trim();
       if(student && student !== 'x' && !student.startsWith('Group') && student.toLowerCase().includes(query)){
@@ -1828,7 +2005,7 @@ function downloadStudentReport(){
 
   // Gather all sessions for this student
   var sessions = [];
-  RAW.forEach(function(row){
+  [...RAW,...MESIVTA_RAW].forEach(function(row){
     for(var c = 3; c < 3 + PROVIDERS.length; c++){
       var student = (row[c] || '').trim();
       if(student === name){
@@ -1902,7 +2079,7 @@ function downloadStudentExcel(){
   var name = officeCurrentStudent;
 
   var sessions = [];
-  RAW.forEach(function(row){
+  [...RAW,...MESIVTA_RAW].forEach(function(row){
     for(var c = 3; c < 3 + PROVIDERS.length; c++){
       var student = (row[c] || '').trim();
       if(student === name){
