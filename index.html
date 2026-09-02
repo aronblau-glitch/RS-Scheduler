@@ -886,6 +886,7 @@ function getStudentContact(name,dept){
 let currentUser = null;
 let currentDept = null; // 'rs' | 'mesivta'
 let adminTab = 'overview';
+let adminCallLogDept = 'rs'; // 'rs' | 'mesivta' - which dept shows in admin call logs
 let sendModalDay = null;
 let viewingWeekKey = null; // null = current week; set to past week key when browsing history
 
@@ -1523,30 +1524,66 @@ function renderAdminTab(){
       +'<input type="text" id="adminStudentSearch" placeholder="Search student name..." oninput="adminSearch()"></div>'
       +'<div id="adminSearchResults"><div class="no-data">Type a name to search.</div></div>';
   } else if(adminTab==='calllogs'){
-    var clHtml='<div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">'
-      +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);" onclick="downloadCallLogExcel()">Download All Providers (Excel)</button>'
+    var clProviders = adminCallLogDept==='mesivta' ? MESIVTA_PROVIDERS : PROVIDERS;
+    var clMandates  = adminCallLogDept==='mesivta' ? MESIVTA_PROVIDER_MANDATES : PROVIDER_MANDATES;
+    var clContacts  = adminCallLogDept==='mesivta' ? MESIVTA_STUDENT_CONTACTS : STUDENT_CONTACTS;
+    var clHtml='<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      +'<div class="prov-tabs no-print" style="margin:0;">'
+      +'<button class="prov-tab'+(adminCallLogDept==='rs'?' active':'')+'" onclick="adminCallLogDept=\'rs\';setAdminTab(\'calllogs\')">RS</button>'
+      +'<button class="prov-tab'+(adminCallLogDept==='mesivta'?' active':'')+'" onclick="adminCallLogDept=\'mesivta\';setAdminTab(\'calllogs\')">Mesivta</button>'
+      +'</div>'
+      +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);margin-left:auto;" onclick="downloadCallLogExcel(adminCallLogDept)">&#11015; Download '+(adminCallLogDept==='mesivta'?'Mesivta':'RS')+' All Providers (Excel)</button>'
+      +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);" onclick="downloadCallLogExcel(\'both\')">&#11015; Download Both Depts (Excel)</button>'
       +'</div>';
-    PROVIDERS.forEach(function(prov){
-      var students=(PROVIDER_MANDATES[prov]||[]).slice().sort();
-      var talked=0;
-      students.forEach(function(s){if(getCallEntry(prov,s).status==='talked')talked++;});
-      clHtml+='<div class="provider-card"><div class="provider-card-header" onclick="toggleProvCard(\'cl_'+PROVIDERS.indexOf(prov)+'\')">'
+    // Status legend
+    clHtml+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:0.75rem;">';
+    CALL_OPTS.forEach(function(o){
+      clHtml+='<span style="padding:2px 10px;border-radius:20px;font-weight:600;" class="'+o.cls+'">'+o.label+'</span>';
+    });
+    clHtml+='<span style="padding:2px 10px;border-radius:20px;font-weight:600;background:#f7fafc;color:#a0aec0;border:1px solid #e2e8f0;">Not called</span>';
+    clHtml+='</div>';
+    clProviders.forEach(function(prov){
+      var students=(clMandates[prov]||[]).slice().sort();
+      var talked=0, vm=0, nopickup=0, multi=0, callback=0, notCalled=0;
+      students.forEach(function(s){
+        var st=getCallEntry(prov,s).status;
+        if(st==='talked')talked++;
+        else if(st==='voicemail')vm++;
+        else if(st==='nopickup')nopickup++;
+        else if(st==='multitried')multi++;
+        else if(st==='callback')callback++;
+        else notCalled++;
+      });
+      var pid='cl_'+clProviders.indexOf(prov)+'_'+adminCallLogDept;
+      var pSafe=prov.replace(/'/g,"\\'");
+      clHtml+='<div class="provider-card"><div class="provider-card-header" onclick="toggleProvCard(\''+pid+'\')">'
         +'<h3><span class="badge '+getTypeClass(prov)+'">'+( prov.split(' - ')[1]||'CO')+'</span> &nbsp;'+prov.split(' - ')[0]+'</h3>'
-        +'<div style="font-size:0.8rem;color:#718096;">'+talked+' / '+students.length+' contacted</div>'
-        +'</div>'
-        +'<div class="provider-sessions" id="cl_'+PROVIDERS.indexOf(prov)+'">';
+        +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+        +(talked?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-talked">Talked: '+talked+'</span>':'')
+        +(vm?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-vm">VM: '+vm+'</span>':'')
+        +(nopickup?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-nopickup">No Ans: '+nopickup+'</span>':'')
+        +(multi?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-multi">Multi: '+multi+'</span>':'')
+        +(callback?'<span style="font-size:0.72rem;padding:1px 7px;border-radius:12px;font-weight:600;" class="cs-callback">Callback: '+callback+'</span>':'')
+        +'<span style="font-size:0.72rem;color:#a0aec0;">'+notCalled+' not called</span>'
+        +'<button class="btn-sync" style="padding:4px 10px;font-size:0.72rem;margin-left:8px;background:linear-gradient(135deg,#276749,#38a169);" onclick="event.stopPropagation();adminDownloadProviderCallLog(\''+pSafe+'\',\''+adminCallLogDept+'\')">&#11015; Excel</button>'
+        +'</div></div>'
+        +'<div class="provider-sessions" id="'+pid+'">';
       students.forEach(function(student){
         var entry=getCallEntry(prov,student);
         var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
-        var contact=getStudentContact(student);
-        clHtml+='<div class="admin-session-row" style="flex-wrap:wrap;gap:4px;">'
-          +'<div style="flex:1;min-width:140px;font-weight:600;font-size:0.84rem;">'+student+'</div>'
-          +'<div style="min-width:100px;font-size:0.78rem;color:#2b6cb0;">'+(opt?opt.label:'Not called')+'</div>';
+        var contact=_getContacts(adminCallLogDept)[student]||getStudentContact(student,adminCallLogDept);
+        var statusColor=opt?'':'color:#a0aec0;';
+        clHtml+='<div class="admin-session-row" style="flex-wrap:wrap;gap:4px;align-items:flex-start;">'
+          +'<div style="flex:1;min-width:160px;font-weight:600;font-size:0.84rem;">'+student+'</div>'
+          +'<div style="min-width:110px;">'
+          +(opt?'<span style="font-size:0.75rem;padding:2px 8px;border-radius:12px;font-weight:600;" class="'+opt.cls+'">'+opt.label+'</span>'
+              :'<span style="font-size:0.75rem;color:#a0aec0;font-style:italic;">Not called</span>')
+          +'</div>';
         if(contact){
           if(contact.father)clHtml+='<a class="call-num father" href="tel:'+contact.father.replace(/[^0-9+]/g,'')+'">F: '+contact.father+'</a>';
           if(contact.mother)clHtml+='<a class="call-num mother" href="tel:'+contact.mother.replace(/[^0-9+]/g,'')+'">M: '+contact.mother+'</a>';
         }
-        if(entry.note)clHtml+='<div style="width:100%;font-size:0.76rem;color:#718096;font-style:italic;padding-left:4px;">'+entry.note.replace(/</g,'&lt;')+'</div>';
+        if(entry.note)clHtml+='<div style="width:100%;font-size:0.76rem;color:#718096;font-style:italic;padding-left:4px;margin-top:2px;">“'+entry.note.replace(/</g,'&lt;')+'”</div>';
         clHtml+='</div>';
       });
       clHtml+='</div></div>';
@@ -1580,44 +1617,46 @@ function renderAdminTab(){
 function toggleProvCard(id){ const el=document.getElementById(id);if(el)el.classList.toggle('open'); }
 
 // ── Excel download (SheetJS) ──────────────────────────────────────────────────
-function downloadCallLogExcel(){
-  // Load SheetJS if not already loaded
+function _buildCallLogSheet(wb, prov, dept){
+  var students=(_getMandates(dept)[prov]||[]).slice().sort();
+  var rows=[['Student','Call Status','Notes','Father Phone','Mother Phone','Best Contact','Preferred Time']];
+  students.forEach(function(student){
+    var entry=getCallEntry(prov,student);
+    var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
+    var contact=_getContacts(dept)[student]||getStudentContact(student,dept)||{};
+    rows.push([student,opt?opt.label:'Not called',entry.note||'',contact.father||'',contact.mother||'',contact.bestContact||'',contact.preferredTime||'']);
+  });
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:30},{wch:16},{wch:36},{wch:16},{wch:16},{wch:18},{wch:28}];
+  var sheetName=(dept==='mesivta'?'M-':'')+prov.replace(/[:\\\/\?\*\[\]]/g,'').substring(0,28);
+  XLSX.utils.book_append_sheet(wb,ws,sheetName);
+}
+function downloadCallLogExcel(dept){
+  dept=dept||'rs';
   function doExport(){
     var wb=XLSX.utils.book_new();
-    // One sheet per provider
-    PROVIDERS.forEach(function(prov){
-      var students=(PROVIDER_MANDATES[prov]||[]).slice().sort();
-      var rows=[['Student','Status','Note','Father Phone','Mother Phone','Best Contact','Preferred Time']];
-      students.forEach(function(student){
-        var entry=getCallEntry(prov,student);
-        var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
-        var contact=getStudentContact(student)||{};
-        rows.push([
-          student,
-          opt?opt.label:'',
-          entry.note||'',
-          contact.father||'',
-          contact.mother||'',
-          contact.bestContact||'',
-          contact.preferredTime||''
-        ]);
-      });
-      var ws=XLSX.utils.aoa_to_sheet(rows);
-      // Auto column widths
-      ws['!cols']=[{wch:28},{wch:16},{wch:32},{wch:16},{wch:16},{wch:18},{wch:28}];
-      var sheetName=prov.replace(/[:\\\/\?\*\[\]]/g,'').substring(0,31);
-      XLSX.utils.book_append_sheet(wb,ws,sheetName);
-    });
-    XLSX.writeFile(wb,'CallLog_AllProviders.xlsx');
+    if(dept==='both'){
+      PROVIDERS.forEach(function(prov){ _buildCallLogSheet(wb,prov,'rs'); });
+      MESIVTA_PROVIDERS.forEach(function(prov){ _buildCallLogSheet(wb,prov,'mesivta'); });
+      XLSX.writeFile(wb,'CallLog_AllDepts.xlsx');
+    } else {
+      var provList=dept==='mesivta'?MESIVTA_PROVIDERS:PROVIDERS;
+      provList.forEach(function(prov){ _buildCallLogSheet(wb,prov,dept); });
+      XLSX.writeFile(wb,'CallLog_'+(dept==='mesivta'?'Mesivta':'RS')+'_AllProviders.xlsx');
+    }
   }
-  if(typeof XLSX!=='undefined'){
-    doExport();
-  } else {
-    var s=document.createElement('script');
-    s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
-    s.onload=doExport;
-    document.head.appendChild(s);
+  if(typeof XLSX!=='undefined'){doExport();}
+  else{var s=document.createElement('script');s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';s.onload=doExport;document.head.appendChild(s);}
+}
+function adminDownloadProviderCallLog(provider,dept){
+  dept=dept||'rs';
+  function doExport(){
+    var wb=XLSX.utils.book_new();
+    _buildCallLogSheet(wb,provider,dept);
+    XLSX.writeFile(wb,'CallLog_'+provider.split(' - ')[0]+(dept==='mesivta'?'_Mesivta':'')+'.xlsx');
   }
+  if(typeof XLSX!=='undefined'){doExport();}
+  else{var s=document.createElement('script');s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';s.onload=doExport;document.head.appendChild(s);}
 }
 
 function downloadProviderCallLogExcel(provider){
