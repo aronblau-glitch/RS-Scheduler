@@ -1119,33 +1119,41 @@ async function navToWeek(wk){
   if(cfg.url&&cfg.key){ await fetchFromSupabase(wk); }
   renderAdminView();
 }
-function setAdminTab(tab){ adminTab=tab; renderAdminView(); }
+function setAdminTab(tab){ if(tab!=='calllogs') stopCallLogAutoRefresh(); adminTab=tab; renderAdminView(); }
 var sbCallLogCache = {}; // provider||student -> {status, note}
-async function loadCallLogsFromSupabase(){
+var callLogAutoRefresh = null;
+async function loadCallLogsFromSupabase(silent){
   const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
   try{
-    const res=await fetch(cfg.url+'/rest/v1/calllogs?select=*&limit=10000',{
+    // Order by updated_at desc so latest record wins on duplicates
+    const res=await fetch(cfg.url+'/rest/v1/calllogs?select=*&order=updated_at.asc&limit=10000',{
       headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Accept':'application/json'}
     });
     if(!res.ok) return;
     const data=await res.json();
     if(!Array.isArray(data)) return;
+    sbCallLogCache={};
     data.forEach(function(r){
       if(r.provider&&r.student){
         const key=r.provider+'||'+r.student;
+        // asc order means later records overwrite earlier ones = latest wins
         sbCallLogCache[key]={status:r.status||'',note:r.note||''};
-        // Also write to localStorage so provider view sees it
-        try{
-          const log=JSON.parse(localStorage.getItem('calllog_2627')||'{}');
-          if(!log[key]||!log[key].status){ log[key]={status:r.status||'',note:r.note||'',ts:Date.now()}; }
-          localStorage.setItem('calllog_2627',JSON.stringify(log));
-        }catch(e){}
       }
     });
     // Re-render the call logs tab after loading
     const el=document.getElementById('adminTabContent');
     if(el&&adminTab==='calllogs') renderAdminTab();
+    // Update refresh timestamp
+    const ts=document.getElementById('clRefreshTs');
+    if(ts) ts.textContent='Last updated: '+new Date().toLocaleTimeString();
   }catch(e){}
+}
+function startCallLogAutoRefresh(){
+  if(callLogAutoRefresh) clearInterval(callLogAutoRefresh);
+  callLogAutoRefresh=setInterval(function(){ if(adminTab==='calllogs') loadCallLogsFromSupabase(true); },30000);
+}
+function stopCallLogAutoRefresh(){
+  if(callLogAutoRefresh){ clearInterval(callLogAutoRefresh); callLogAutoRefresh=null; }
 }
 function getSbCallEntry(provider, student){
   const sbEntry=sbCallLogCache[provider+'||'+student];
@@ -1203,19 +1211,19 @@ function renderAdminTab(){
     var clProviders = adminCallLogDept==='mesivta' ? MESIVTA_PROVIDERS : PROVIDERS;
     var clMandates  = adminCallLogDept==='mesivta' ? MESIVTA_PROVIDER_MANDATES : PROVIDER_MANDATES;
     var clContacts  = adminCallLogDept==='mesivta' ? MESIVTA_STUDENT_CONTACTS : STUDENT_CONTACTS;
-    // Load from Supabase (async — re-renders when done)
+    // Load from Supabase (async — re-renders when done) and start auto-refresh
     loadCallLogsFromSupabase();
-    var clHtml='<div style="margin-bottom:8px;padding:8px 12px;background:#fffbeb;border:1px solid #f6e05e;border-radius:8px;font-size:0.78rem;color:#744210;">'
-      +'<strong>Note:</strong> Call log data syncs from Supabase. Providers must save at least one call status for it to appear here. '
-      +'If you just set up the <code>calllogs</code> table, ask providers to log one call to start syncing.</div>'
-      +'<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+    startCallLogAutoRefresh();
+    var clHtml='<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
       +'<div class="prov-tabs no-print" style="margin:0;">'
       +'<button class="prov-tab'+(adminCallLogDept==='rs'?' active':'')+'" onclick="adminCallLogDept=\'rs\';setAdminTab(\'calllogs\')">RS</button>'
       +'<button class="prov-tab'+(adminCallLogDept==='mesivta'?' active':'')+'" onclick="adminCallLogDept=\'mesivta\';setAdminTab(\'calllogs\')">Mesivta</button>'
       +'</div>'
       +'<button class="btn-dl" onclick="downloadCallLogExcel(adminCallLogDept)">Download '+(adminCallLogDept==='mesivta'?'Mesivta':'RS')+' All Providers</button>'
       +'<button class="btn-sync" style="background:linear-gradient(135deg,#276749,#38a169);" onclick="downloadCallLogExcel(\'both\')">Download Both Depts (Excel)</button>'
-      +'</div></div>';
+      +'<button class="btn-dl" onclick="loadCallLogsFromSupabase()" style="margin-left:auto;">&#8635; Refresh</button>'
+      +'<span id="clRefreshTs" style="font-size:0.72rem;color:#a0aec0;"></span>'
+      +'</div>';
     // (legend removed — status shown inline per provider)
     clProviders.forEach(function(prov){
       var students=(clMandates[prov]||[]).slice().sort();
