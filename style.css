@@ -344,6 +344,20 @@ header h1 { font-size: 1.1rem; font-weight: 700; }
   transition:border-color 0.15s; min-height:48px;
 }
 .call-note-input:focus { border-color:#2d4a6e; }
+.call-note-actions { display:flex; gap:8px; margin-top:5px; }
+.btn-note-save {
+  padding:5px 14px; font-size:0.78rem; font-weight:600; border-radius:6px;
+  background:white; border:1.5px solid #2d4a6e; color:#2d4a6e; cursor:pointer;
+  transition:all 0.15s;
+}
+.btn-note-save:hover { background:#2d4a6e; color:white; }
+.btn-note-ai {
+  padding:5px 14px; font-size:0.78rem; font-weight:600; border-radius:6px;
+  background:white; border:1.5px solid #6b46c1; color:#6b46c1; cursor:pointer;
+  transition:all 0.15s;
+}
+.btn-note-ai:hover { background:#6b46c1; color:white; }
+.btn-note-ai:disabled { opacity:0.5; cursor:default; }
 
 /* ── Admin call stat row (call logs tab) ─────────────────────────────── */
 .call-stat-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }

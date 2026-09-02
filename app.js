@@ -841,7 +841,18 @@ function setCallStatus(provider, student, status){
     cur.ts=Date.now();
     log[key]=cur;
     localStorage.setItem('calllog_2627',JSON.stringify(log));
-    renderCallCard(provider,student);
+    pushCallLogEntry(provider, student, cur.status, cur.note);
+    // Update card wrapper class
+    const cardEl=document.getElementById(callCardId(student));
+    if(cardEl){
+      const opt=CALL_OPTS.find(o=>o.key===cur.status);
+      cardEl.className='call-card'+(opt?' '+opt.cls:'');
+      // Update button active states
+      CALL_OPTS.forEach(function(o){
+        const btn=cardEl.querySelector('.opt-'+o.key);
+        if(btn){ btn.className='call-status-btn opt-'+o.key+(cur.status===o.key?' active':''); }
+      });
+    }
     updateCallSummary(provider);
   }catch(e){}
 }
@@ -853,7 +864,51 @@ function setCallNote(provider, student, note){
     cur.note=note; cur.ts=Date.now();
     log[key]=cur;
     localStorage.setItem('calllog_2627',JSON.stringify(log));
+    pushCallLogEntry(provider, student, cur.status, note);
   }catch(e){}
+}
+function saveCallNote(provider, student, noteId){
+  const ta=document.getElementById(noteId);
+  if(!ta) return;
+  setCallNote(provider, student, ta.value);
+  // Show saved toast on the button
+  const btn=ta.parentElement ? ta.parentElement.querySelector('.btn-note-save') : null;
+  if(btn){ const orig=btn.textContent; btn.textContent='Saved!'; btn.style.background='#38a169'; setTimeout(function(){ btn.textContent=orig; btn.style.background=''; },1500); }
+}
+async function aiEnhanceNote(provider, student, noteId){
+  const ta=document.getElementById(noteId);
+  if(!ta||!ta.value.trim()){alert('Please write a note first, then click AI Enhance.');return;}
+  const btn=ta.parentElement ? ta.parentElement.querySelector('.btn-note-ai') : null;
+  if(btn){ btn.textContent='Enhancing...'; btn.disabled=true; }
+  const apiKey=localStorage.getItem('claudeApiKey')||'';
+  if(!apiKey){
+    if(btn){btn.textContent='&#10024; AI Enhance';btn.disabled=false;}
+    const k=prompt('Enter your Claude API key (stored locally on this device):');
+    if(k&&k.trim()){ localStorage.setItem('claudeApiKey',k.trim()); aiEnhanceNote(provider,student,noteId); }
+    return;
+  }
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:300,
+        messages:[{role:'user',content:'You are helping a school therapist/specialist write professional parent call log notes. Take the following rough note and rewrite it as a single clear, professional 1-3 sentence note. Keep it factual and concise. Do not add information that isn\'t there. Return ONLY the improved note, nothing else.\n\nRough note: '+ta.value}]
+      })
+    });
+    if(!resp.ok){
+      const err=await resp.text();
+      if(resp.status===401){ localStorage.removeItem('claudeApiKey'); alert('Invalid API key. Please try again.'); }
+      else alert('Error: '+err.substring(0,200));
+    } else {
+      const data=await resp.json();
+      const enhanced=(data.content&&data.content[0]&&data.content[0].text)||ta.value;
+      ta.value=enhanced;
+      setCallNote(provider,student,enhanced);
+    }
+  }catch(e){ alert('Network error: '+e.message); }
+  if(btn){btn.textContent='&#10024; AI Enhance';btn.disabled=false;}
 }
 
 const CALL_OPTS=[
@@ -939,7 +994,11 @@ function renderParentCallsTab(provider,dept){
     });
     html+='</div>';
     var noteId='cnote_'+makeId('',0,student);
-    html+='<textarea class="call-note-input" id="'+noteId+'" placeholder="Notes..." onchange="setCallNote(\''+pE+'\',\''+sE+'\',this.value)">'  +((entry.note||'').replace(/</g,'&lt;'))+'</textarea>';
+    html+='<textarea class="call-note-input" id="'+noteId+'" placeholder="Notes...">'  +((entry.note||'').replace(/</g,'&lt;'))+'</textarea>';
+    html+='<div class="call-note-actions">'
+      +'<button class="btn-note-save" onclick="saveCallNote(\''+pE+'\',\''+sE+'\',\''+noteId+'\')">Save Note</button>'
+      +'<button class="btn-note-ai" onclick="aiEnhanceNote(\''+pE+'\',\''+sE+'\',\''+noteId+'\')">&#10024; AI Enhance</button>'
+      +'</div>';
     html+='</div>';
   });
   return html;
@@ -1061,6 +1120,38 @@ async function navToWeek(wk){
   renderAdminView();
 }
 function setAdminTab(tab){ adminTab=tab; renderAdminView(); }
+var sbCallLogCache = {}; // provider||student -> {status, note}
+async function loadCallLogsFromSupabase(){
+  const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
+  try{
+    const res=await fetch(cfg.url+'/rest/v1/calllogs?select=*&limit=10000',{
+      headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Accept':'application/json'}
+    });
+    if(!res.ok) return;
+    const data=await res.json();
+    if(!Array.isArray(data)) return;
+    data.forEach(function(r){
+      if(r.provider&&r.student){
+        const key=r.provider+'||'+r.student;
+        sbCallLogCache[key]={status:r.status||'',note:r.note||''};
+        // Also write to localStorage so provider view sees it
+        try{
+          const log=JSON.parse(localStorage.getItem('calllog_2627')||'{}');
+          if(!log[key]||!log[key].status){ log[key]={status:r.status||'',note:r.note||'',ts:Date.now()}; }
+          localStorage.setItem('calllog_2627',JSON.stringify(log));
+        }catch(e){}
+      }
+    });
+    // Re-render the call logs tab after loading
+    const el=document.getElementById('adminTabContent');
+    if(el&&adminTab==='calllogs') renderAdminTab();
+  }catch(e){}
+}
+function getSbCallEntry(provider, student){
+  const sbEntry=sbCallLogCache[provider+'||'+student];
+  if(sbEntry&&sbEntry.status) return sbEntry;
+  return getCallEntry(provider, student);
+}
 function renderAdminTab(){
   const wk=getActiveWeekKey(), el=document.getElementById('adminTabContent');
   const useSb=Object.keys(sbCache).length>0 && sbCacheWeek===wk;
@@ -1112,6 +1203,8 @@ function renderAdminTab(){
     var clProviders = adminCallLogDept==='mesivta' ? MESIVTA_PROVIDERS : PROVIDERS;
     var clMandates  = adminCallLogDept==='mesivta' ? MESIVTA_PROVIDER_MANDATES : PROVIDER_MANDATES;
     var clContacts  = adminCallLogDept==='mesivta' ? MESIVTA_STUDENT_CONTACTS : STUDENT_CONTACTS;
+    // Load from Supabase cache if available
+    loadCallLogsFromSupabase();
     var clHtml='<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
       +'<div class="prov-tabs no-print" style="margin:0;">'
       +'<button class="prov-tab'+(adminCallLogDept==='rs'?' active':'')+'" onclick="adminCallLogDept=\'rs\';setAdminTab(\'calllogs\')">RS</button>'
@@ -1125,7 +1218,7 @@ function renderAdminTab(){
       var students=(clMandates[prov]||[]).slice().sort();
       var talked=0, vm=0, nopickup=0, multi=0, callback=0, notCalled=0;
       students.forEach(function(s){
-        var st=getCallEntry(prov,s).status;
+        var st=getSbCallEntry(prov,s).status;
         if(st==='talked')talked++;
         else if(st==='voicemail')vm++;
         else if(st==='nopickup')nopickup++;
@@ -1150,7 +1243,7 @@ function renderAdminTab(){
         +'</div></div>'
         +'<div class="provider-sessions" id="'+pid+'">';
       students.forEach(function(student){
-        var entry=getCallEntry(prov,student);
+        var entry=getSbCallEntry(prov,student);
         var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
         var contact=_getContacts(adminCallLogDept)[student]||getStudentContact(student,adminCallLogDept);
         var statusColor=opt?'':'color:#a0aec0;';
@@ -1372,6 +1465,17 @@ function sbDone(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)
 function sbAbsent(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='absent'; }
 function sbNc(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='nc'; }
 
+async function pushCallLogEntry(provider, student, status, note){
+  const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
+  const row={provider,student,status:status||'',note:note||'',updated_at:new Date().toISOString()};
+  try{
+    await fetch(cfg.url+'/rest/v1/calllogs?on_conflict=provider,student',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify([row])
+    });
+  }catch(e){}
+}
 async function pushProviderRecord(provider, day, time, student, status){
   const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
   const wk=getWeekKey();
