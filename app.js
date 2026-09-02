@@ -907,7 +907,7 @@ function renderParentCallsTab(provider,dept){
   allStudents.forEach(function(student){
     var entry=getCallEntry(provider,student);
     var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
-    var contact=getStudentContact(student);
+    var contact=getStudentContact(student,dept);
     var pE=provider.replace(/'/g,"\\'"),sE=student.replace(/'/g,"\\'");
     // Fuzzy check: is this student in the timeslot schedule?
     var inSchedule=scheduledSet.has(student);
