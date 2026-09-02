@@ -1081,9 +1081,9 @@ function showDeptChooser(provider){
 /* --- PROVIDER VIEW --- */
 function showProviderView(provider,tab){
   providerCallTab=tab||providerCallTab||'schedule';
+  const dept=currentDept||PROVIDER_DEPT[provider]||'rs';
   const container=document.getElementById('providerView');
   if(providerCallTab==='calls'){
-    const wk=getWeekKey(), pIdx=PROVIDERS.indexOf(provider), colIdx=pIdx+3;
     container.style.display='block';
     document.getElementById('adminView').style.display='none';
     const pSafe=provider.replace(/'/g,"\\'");
@@ -1091,7 +1091,7 @@ function showProviderView(provider,tab){
       +'<button class="prov-tab" onclick="showProviderView(\''+pSafe+'\',\'schedule\')">Schedule</button>'
       +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe+'\',\'calls\')">Parent Calls</button>'
       +'</div>';
-    html+=renderParentCallsTab(provider);
+    html+=renderParentCallsTab(provider,dept);
     container.innerHTML=html;
     return;
   }
@@ -1200,9 +1200,16 @@ function showProviderView(provider,tab){
   }
 
   var pSafe2=provider.replace(/'/g,"\\'");
+  var switchBtn='';
+  if(PROVIDER_DEPT[provider]==='both'){
+    var otherDept=dept==='rs'?'mesivta':'rs';
+    var otherLabel=dept==='rs'?'Mesivta':'RS';
+    switchBtn='<button class="prov-tab" style="margin-left:auto;" onclick="currentDept=\''+otherDept+'\';showProviderView(\''+pSafe2+'\',\'schedule\')">Switch to '+otherLabel+'</button>';
+  }
   container.innerHTML='<div class="prov-tabs no-print">'
     +'<button class="prov-tab active" onclick="showProviderView(\''+pSafe2+'\',\'schedule\')">Schedule</button>'
     +'<button class="prov-tab" onclick="showProviderView(\''+pSafe2+'\',\'calls\')">Parent Calls</button>'
+    +switchBtn
     +'</div>'+html;
 }
 
