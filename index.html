@@ -1261,7 +1261,7 @@ function setCallNote(provider, student, note){
 }
 
 const CALL_OPTS=[
-  {key:'talked',   icon:'', label:'Talked',          cls:'cs-talked'},
+  {key:'talked',   icon:'', label:'Reached',          cls:'cs-talked'},
   {key:'nopickup', icon:'', label:'No Answer',        cls:'cs-nopickup'},
   {key:'voicemail',icon:'', label:'Voicemail',        cls:'cs-vm'},
   {key:'multitried',icon:'',label:'Tried Multiple',   cls:'cs-multi'},
@@ -1543,7 +1543,7 @@ function renderAdminTab(){
         +'<h3><span class="badge '+getTypeClass(prov)+'">'+( prov.split(' - ')[1]||'CO')+'</span> &nbsp;'+prov.split(' - ')[0]+'</h3>'
         +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
         +'<span class="call-stat-row">'
-        +(talked?'<span class="csr-item csr-talked">Talked: '+talked+'</span>':'') 
+        +(talked?'<span class="csr-item csr-talked">Reached: '+talked+'</span>':'') 
         +(vm?'<span class="csr-item csr-vm">VM: '+vm+'</span>':'')
         +(nopickup?'<span class="csr-item csr-nopickup">No Ans: '+nopickup+'</span>':'')
         +(multi?'<span class="csr-item csr-multi">Multi-try: '+multi+'</span>':'')
