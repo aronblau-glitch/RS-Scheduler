@@ -562,6 +562,8 @@ function doLogin(){
   else if(sel==='office') showOfficeView();
   else {
     const dept = PROVIDER_DEPT[sel];
+    // On login, silently push any existing local call log data to Supabase
+    syncProviderCallLogsToSupabase(sel);
     if(dept==='both') showDeptChooser(sel);
     else { currentDept=dept||'rs'; showProviderView(sel); }
   }
@@ -1476,6 +1478,30 @@ function sbDone(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)
 function sbAbsent(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='absent'; }
 function sbNc(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='nc'; }
 
+async function syncProviderCallLogsToSupabase(provider){
+  // Push all existing localStorage call log entries for this provider to Supabase
+  const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
+  try{
+    const log=JSON.parse(localStorage.getItem('calllog_2627')||'{}');
+    const rows=[];
+    Object.keys(log).forEach(function(key){
+      // key format: "provider||student"
+      var parts=key.split('||');
+      if(parts.length===2 && parts[0]===provider){
+        var entry=log[key];
+        if(entry.status||entry.note){
+          rows.push({provider:parts[0],student:parts[1],status:entry.status||'',note:entry.note||'',updated_at:new Date().toISOString()});
+        }
+      }
+    });
+    if(!rows.length) return;
+    await fetch(cfg.url+'/rest/v1/calllogs?on_conflict=provider,student',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify(rows)
+    });
+  }catch(e){}
+}
 async function pushCallLogEntry(provider, student, status, note){
   const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
   const row={provider,student,status:status||'',note:note||'',updated_at:new Date().toISOString()};
