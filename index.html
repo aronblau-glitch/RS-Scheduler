@@ -1628,8 +1628,8 @@ var callLogAutoRefresh = null;
 async function loadCallLogsFromSupabase(silent){
   const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
   try{
-    // Order by updated_at desc so latest record wins on duplicates
-    const res=await fetch(cfg.url+'/rest/v1/calllogs?select=*&order=updated_at.asc&limit=10000',{
+    const tbl=cfg.table||'checkoffs';
+    const res=await fetch(cfg.url+'/rest/v1/'+tbl+'?week_key=eq.calllog_2627&select=provider,student,status,updated_at&order=updated_at.asc&limit=10000',{
       headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Accept':'application/json'}
     });
     if(!res.ok) return;
@@ -1637,16 +1637,12 @@ async function loadCallLogsFromSupabase(silent){
     if(!Array.isArray(data)) return;
     sbCallLogCache={};
     data.forEach(function(r){
-      if(r.provider&&r.student){
-        const key=r.provider+'||'+r.student;
-        // asc order means later records overwrite earlier ones = latest wins
-        sbCallLogCache[key]={status:r.status||'',note:r.note||''};
+      if(r.provider&&r.student&&r.status&&r.status.startsWith('calllog|')){
+        sbCallLogCache[r.provider+'||'+r.student]=_decodeCallLog(r.status);
       }
     });
-    // Re-render the call logs tab after loading
     const el=document.getElementById('adminTabContent');
     if(el&&adminTab==='calllogs') renderAdminTab();
-    // Update refresh timestamp
     const ts=document.getElementById('clRefreshTs');
     if(ts) ts.textContent='Last updated: '+new Date().toLocaleTimeString();
   }catch(e){}
@@ -1979,24 +1975,27 @@ function sbDone(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)
 function sbAbsent(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='absent'; }
 function sbNc(p,d,t,s){ return sbCache[p+'||'+d+'||'+parseFloat(t).toFixed(10)+'||'+s]==='nc'; }
 
+// Call logs are stored in the existing checkoffs table using week_key='calllog_2627'
+// status field encodes: "calllog|{status}|{note}" so it's distinguishable from regular checkoffs
+function _encodeCallLog(status, note){ return 'calllog|'+(status||'')+'|'+(note||'').replace(/\|/g,'&#124;'); }
+function _decodeCallLog(raw){ var p=raw.split('|'); return {status:p[1]||'',note:(p.slice(2).join('|')||'').replace(/&#124;/g,'|')}; }
+
 async function syncProviderCallLogsToSupabase(provider){
-  // Push all existing localStorage call log entries for this provider to Supabase
   const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
   try{
     const log=JSON.parse(localStorage.getItem('calllog_2627')||'{}');
     const rows=[];
     Object.keys(log).forEach(function(key){
-      // key format: "provider||student"
       var parts=key.split('||');
       if(parts.length===2 && parts[0]===provider){
         var entry=log[key];
         if(entry.status||entry.note){
-          rows.push({provider:parts[0],student:parts[1],status:entry.status||'',note:entry.note||'',updated_at:new Date().toISOString()});
+          rows.push({week_key:'calllog_2627',provider:parts[0],day:'calllog',time:0,student:parts[1],status:_encodeCallLog(entry.status,entry.note),updated_at:new Date().toISOString()});
         }
       }
     });
     if(!rows.length) return;
-    await fetch(cfg.url+'/rest/v1/calllogs?on_conflict=provider,student',{
+    await fetch(cfg.url+'/rest/v1/'+(cfg.table||'checkoffs')+'?on_conflict=week_key,provider,day,time,student',{
       method:'POST',
       headers:{'Content-Type':'application/json','apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Prefer':'resolution=merge-duplicates'},
       body:JSON.stringify(rows)
@@ -2005,9 +2004,9 @@ async function syncProviderCallLogsToSupabase(provider){
 }
 async function pushCallLogEntry(provider, student, status, note){
   const cfg=getSupabaseCfg(); if(!cfg.url||!cfg.key) return;
-  const row={provider,student,status:status||'',note:note||'',updated_at:new Date().toISOString()};
+  const row={week_key:'calllog_2627',provider,day:'calllog',time:0,student,status:_encodeCallLog(status,note),updated_at:new Date().toISOString()};
   try{
-    await fetch(cfg.url+'/rest/v1/calllogs?on_conflict=provider,student',{
+    await fetch(cfg.url+'/rest/v1/'+(cfg.table||'checkoffs')+'?on_conflict=week_key,provider,day,time,student',{
       method:'POST',
       headers:{'Content-Type':'application/json','apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Prefer':'resolution=merge-duplicates'},
       body:JSON.stringify([row])
