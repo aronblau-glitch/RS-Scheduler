@@ -1302,7 +1302,8 @@ function _buildCallLogSheet(wb, prov, dept){
   var students=(_getMandates(dept)[prov]||[]).slice().sort();
   var rows=[['Student','Call Status','Notes','Father Phone','Mother Phone','Best Contact','Preferred Time']];
   students.forEach(function(student){
-    var entry=getCallEntry(prov,student);
+    // Prefer Supabase data (admin view), fall back to localStorage
+    var entry=getSbCallEntry(prov,student);
     var opt=CALL_OPTS.find(function(o){return o.key===entry.status;});
     var contact=_getContacts(dept)[student]||getStudentContact(student,dept)||{};
     rows.push([student,opt?opt.label:'Not called',entry.note||'',contact.father||'',contact.mother||'',contact.bestContact||'',contact.preferredTime||'']);
