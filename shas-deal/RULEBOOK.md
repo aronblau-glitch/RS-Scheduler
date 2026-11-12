@@ -166,7 +166,7 @@ The game ends **immediately** when a player has 3 complete sets of different col
 | Commentators (2) | Rashi, Tosafot |
 | Study Tools (2) | Study Hall Table, Reference Shelf |
 
-Each property has a money value of 1-4 (1 for the smallest sets, up to 4 for the largest).
+Each property has a money value of 1-3 (1 for 2-card sets, 2 for 3-card sets, 3 for 4-card sets).
 
 ### Wild properties (8)
 - Zeraim / Moed: 1
