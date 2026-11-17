@@ -17,7 +17,7 @@ How it plays (unchanged by this brief):
   4. **Discard** one card.
 - Refill to 5 at the end of the turn.
 - A challenge: players trade replies (each reply is a new matching good, exact payment, or Wild). The first to pass loses. The winner takes the lot plus every card played.
-- **Market Guard** (Shomer) blocks one challenge. The attacker keeps the cards they showed; the defender keeps the lot.
+- **Market Guard** (Shomer) blocks one challenge. The attacker loses the cards they showed (they go to the spent pile); the defender keeps the lot.
 - Fun Mode: your bottom lot is always safe, and the attacker gets one challenge per turn. No Mercy: any exposed top lot is fair game, and a Double Raid is allowed.
 - The game ends when the draw pile runs out (finish the trip around the table).
 - Hebrew call-outs: Shuka (buying), Meitivei (opening a challenge), Adrabba (replying), Shomer (blocking).
@@ -45,10 +45,10 @@ How it plays (unchanged by this brief):
 | Discard pile rule | Wild, coin or Guard cannot be bought | Only goods may be bought or matched. Wilds, Guards and action cards cannot be taken. | **Adopted**, with coins added to the list. |
 | Challenge payment | Exact price of a goods card in the lot | Must equal the printed value of one goods card of the challenged set, not the lot's total | **Adopted**, the clearer wording. |
 | Market Guards | 1 | 3 (replace one 2 Zuz and one 4 Zuz coin) | **Adopted.** |
-| What a blocked attacker loses | Attacker keeps the shown cards | Discard the Guard and all cards played in that challenge | **Not adopted.** See below. |
+| What a blocked attacker loses | Attacker keeps the shown cards | Discard the Guard and all cards played in that challenge | **Adopted at the designer's request** (version 3.1). The attacker's shown cards go to the spent pile. |
 | First playtest | Not specified | Base deck, Fun Mode, no expansion | **Adopted.** |
 
-**Why the blocked-attacker rule was not changed.** Astra's wording sends the attacker's shown cards to the spent pile. The current rule lets the attacker keep them. Astra's version is harsher on attackers and, with three Guards in the deck, would discourage challenges. Challenges are the main fun of the game. If the playtest shows Guards are too weak, the rule can be tightened later. The designer should decide this, not ChatGPT.
+**Blocked attackers (decided by the designer).** A blocked attacker loses the cards they showed. This makes a Guard a real deterrent. With three Guards in the deck it also makes challenging riskier, so in the playtest watch whether players stop attacking. If they do, the fallback is the earlier rule, where the attacker keeps the shown cards.
 
 **Where Astra's numbers are still open to criticism:** Gold plus a Barley is 144i against 48i for two Barley, still a 3:1 swing. It is smaller than version 1's 264i but not removed. Version 2 removed the swing entirely at the cost of making the Wilds dull. Neither is proven. Use Astra's values for the next test, and keep the section 8 fallback in mind.
 
@@ -97,7 +97,7 @@ Deck total: 56 goods + 25 coins + 15 Wilds + 3 Guards = **99 cards**. Scoring ra
 - **Challenge payment:** "An exact coin payment must equal the printed price of one goods card of the challenged set, not the total value of the lot."
 - **Scoring:** add the printed issarin on every goods card and Wild in your stack. **Cards left in your hand score nothing**, nor do coins, Guards, spent cards or discards. Highest total wins. Tiebreak: most cards in your stack. Share an exact tie.
 - **Coins tucked into a lot as bids score zero.**
-- **Market Guard:** play it when someone challenges your lot. The challenge ends immediately and you keep your lot. The Guard goes to the spent pile and scores zero. The attacker keeps the cards they showed.
+- **Market Guard:** play it when someone challenges your lot. The challenge ends immediately and you keep your lot. The Guard goes to the spent pile and scores zero. The attacker's shown cards also go to the spent pile. Cards the attacker did not show stay in their hand.
 - Example score: two Wine (48i + 48i) and a Silver Treasure (72i) add up to 168i.
 - Example challenge: Esther opens with a matching Olive Oil. Dovid answers with two 1 Zuz coins (24i + 24i), the exact price of one Olive Oil (48i). Esther passes, so Dovid keeps his lot.
 
